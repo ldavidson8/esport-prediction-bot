@@ -1,3 +1,5 @@
+import { logger } from './logger.js';
+
 interface Team {
     shortcode: string;
     name: string;
@@ -62,7 +64,7 @@ export const teams: Team[] = [
     },
     {
         shortcode: 'PNG',
-        name: 'Pain Gaming',
+        name: 'paIN Gaming',
         emojiMarkdown: '<:PNG:1289420206690664581>',
     },
     {
@@ -72,12 +74,12 @@ export const teams: Team[] = [
     },
     {
         shortcode: 'R7',
-        name: 'Rainbow7',
+        name: 'Movistar R7',
         emojiMarkdown: '<:R7:1289420235392421949>',
     },
     {
         shortcode: 'SHG',
-        name: 'Shanghai Dragons',
+        name: 'Fukuoka SoftBank HAWKS gaming',
         emojiMarkdown: '<:SHG:1289420247606235166>',
     },
     {
@@ -102,7 +104,7 @@ export const teams: Team[] = [
     },
     {
         shortcode: 'WBG',
-        name: 'Weibo Gaming',
+        name: 'WeiboGaming TapTap',
         emojiMarkdown: '<:WBG:1289420318024142860>',
     },
 ];
@@ -116,6 +118,11 @@ export function getTeamByName(name: string): Team | undefined {
 }
 
 export function getEmojiMarkdown(identifier: string): string | undefined {
-    const team = teams.find(team => team.shortcode === identifier || team.name === identifier);
-    return team?.emojiMarkdown;
+    try {
+        const team = teams.find(team => team.shortcode === identifier || team.name === identifier);
+        return team?.emojiMarkdown;
+    } catch (error) {
+        logger.warn(`Failed to get emoji for ${identifier}`);
+        return '';
+    }
 }

@@ -1,18 +1,20 @@
-import { Events, TextChannel, GuildChannel, ChannelType } from 'discord.js';
+import { Events, TextChannel, GuildChannel, ChannelType, Guild } from 'discord.js';
 import { CustomClient } from './classes/client.js';
 import fetch from 'node-fetch';
 import schedule from 'node-schedule';
 import dayjs from 'dayjs';
 import { getEmojiMarkdown, getTeamByName } from './utils/teams.js';
 import { logger } from './utils/logger.js';
+import { env } from './env.js';
 
 const client = new CustomClient();
 
 client.once(Events.ClientReady, readyClient => {
     logger.info(`Logged in as ${readyClient.user?.tag}`);
     if (!checkForPredictionsChannel()) createPredictionsChannel();
-    schedule.scheduleJob('* 1 * * *', processSchedule);
-    processSchedule(); // Call once at startup
+    // Test Call every 10 seconds
+    // schedule.scheduleJob('*/10 * * * * *', processSchedule);
+    processSchedule(client, env.GUILD_ID);
 });
 
 function checkForPredictionsChannel(): boolean {
@@ -49,114 +51,118 @@ async function createPredictionsChannel() {
     return predictionsChannel;
 }
 
-async function processSchedule() {
-    const url = 'https://esports-api.lolesports.com/persisted/gw/getSchedule?hl=en-US';
+async function fetchScheduleData(): Promise<any> {
+    const url =
+        'https://esports-api.lolesports.com/persisted/gw/getSchedule?hl=en-US&leagueId=98767975604431411';
     const options = {
         method: 'GET',
         headers: { 'x-api-key': '0TvQnueqKa5mxJntVWt0w4LpLfEkrV1Ta8rQBb9Z' },
     };
+    const response = await fetch(url, options);
+    return response.json();
+}
+
+interface Event {
+    state: string;
+    startTime: string;
+    match: {
+        teams: { name: string; code: string }[];
+    };
+    league: {
+        name: string;
+    };
+    blockName: string;
+}
+
+function filterUpcomingEvents(events: Event[], now: dayjs.Dayjs): Event[] {
+    return events.filter(event => {
+        if (event.state !== 'unstarted') return false;
+        const startTime = dayjs(event.startTime);
+        const timeDiff = startTime.diff(now, 'hours');
+        return timeDiff <= 24 && timeDiff >= 0;
+    });
+}
+
+function findPredictionsChannel(guild: Guild): TextChannel | null {
+    const predictionsChannel = guild.channels.cache.find(
+        channel =>
+            channel.isTextBased() &&
+            channel instanceof GuildChannel &&
+            channel.name === 'bot-predictions'
+    ) as TextChannel;
+
+    if (!predictionsChannel) {
+        logger.error('Predictions channel not found');
+        return null;
+    }
+
+    return predictionsChannel;
+}
+
+async function sendEventMessage(channel: TextChannel, event: Event, timeDiff: number) {
+    const team1 = event.match.teams[0];
+    const team2 = event.match.teams[1];
+
+    if (team1.name === 'TBD' || team2.name === 'TBD') {
+        logger.info('TBD team found, skipping');
+        return;
+    }
+
+    const team1Emoji = getEmojiMarkdown(team1.code);
+    const team2Emoji = getEmojiMarkdown(team2.code);
+
+    const startTime = dayjs(event.startTime);
+    const messageContent =
+        `Upcoming match in ${timeDiff} hours: ${team1Emoji} ${team1.name} vs ${team2Emoji} ${team2.name}` +
+        `\n${event.league.name} - ${event.blockName}` +
+        `\nStarts at <t:${Math.floor(startTime.unix())}:F>`;
 
     try {
-        const response = await fetch(url, options);
-        const data: any = await response.json();
+        const message = await channel.send(messageContent);
 
+        if (team1Emoji || team2Emoji) {
+            try {
+                if (team1Emoji) await message.react(team1Emoji);
+                if (team2Emoji) await message.react(team2Emoji);
+            } catch (error) {
+                logger.warn(`Failed to react with emojis ${team1Emoji} or ${team2Emoji}`, error);
+            }
+        }
+    } catch (error) {
+        logger.error('Failed to send message or add reactions', error);
+    }
+}
+
+async function processGuild(guild: Guild, events: Event[], now: dayjs.Dayjs) {
+    const predictionsChannel = findPredictionsChannel(guild);
+    if (!predictionsChannel) return;
+
+    for (const event of events) {
+        const startTime = dayjs(event.startTime);
+        const timeDiff = startTime.diff(now, 'hours');
+
+        await sendEventMessage(predictionsChannel, event, timeDiff);
+    }
+}
+
+async function processSchedule(client: CustomClient, targetGuildId?: string): Promise<void> {
+    try {
+        const data = await fetchScheduleData();
         const now = dayjs();
+        const upcomingEvents = filterUpcomingEvents(data.data.schedule.events, now);
 
-        for (const guild of client.guilds.cache.values()) {
-            const predictionsChannel = guild.channels.cache.find(
-                channel =>
-                    channel.isTextBased() &&
-                    channel instanceof GuildChannel &&
-                    channel.name === 'bot-predictions'
-            ) as TextChannel;
+        let guildsToProcess: Guild[] = targetGuildId
+            ? [client.guilds.cache.get(targetGuildId)].filter(
+                  (guild): guild is Guild => guild !== undefined
+              )
+            : Array.from(client.guilds.cache.values());
 
-            if (!predictionsChannel) {
-                logger.error(`Channel not found in guild: ${guild.name}`);
-                continue;
-            }
-
-            for (const event of data.data.schedule.events) {
-                if (event.state !== 'unstarted') continue;
-                const startTime = dayjs(event.startTime);
-                const timeDiff = startTime.diff(now, 'hours');
-
-                if (timeDiff <= 24 && timeDiff >= 0) {
-                    const team1 = event.match.teams[0];
-                    const team2 = event.match.teams[1];
-
-                    if (
-                        team1.name === 'TBD' ||
-                        team2.name === 'TBD' ||
-                        getTeamByName(team1.name) === undefined ||
-                        getTeamByName(team2.name) === undefined
-                    ) {
-                        logger.info('TBD team found, skipping');
-                        return;
-                    }
-
-                    const team1Emoji = getEmojiMarkdown(team1.code) || '';
-                    const team2Emoji = getEmojiMarkdown(team2.code) || '';
-
-                    logger.info(
-                        `Upcoming match in ${timeDiff} hours: ${team1Emoji} ${team1.name} vs ${team2Emoji} ${team2.name}` +
-                            `\n${event.league.name} - ${event.blockName}` +
-                            `\nStarts at <t:${Math.floor(startTime.unix())}:F>`
-                    );
-
-                    // const message = await predictionsChannel.send(
-                    //     `Upcoming match in ${timeDiff} hours: ${team1Emoji} ${team1.name} vs ${team2Emoji} ${team2.name}` +
-                    //         `\n${event.league.name} - ${event.blockName}` +
-                    //         `\nStarts at <t:${Math.floor(startTime.unix())}:F>`
-                    // );
-
-                    // if (team1Emoji) await message.react(team1Emoji);
-                    // if (team2Emoji) await message.react(team2Emoji);
-                }
-            }
+        for (const guild of guildsToProcess) {
+            await processGuild(guild, upcomingEvents, now);
         }
     } catch (error) {
         logger.error('Error fetching schedule', error);
     }
-}
-
-function sendMessageToOneChannel() {
-    const generalChannel = client.channels.cache.find(
-        channel =>
-            channel.isTextBased() && channel instanceof GuildChannel && channel.name === 'general'
-    ) as TextChannel;
-
-    if (!generalChannel) {
-        console.error('Channel not found');
-        return;
-    }
-
-    const currentTime = dayjs().format('HH:mm:ss');
-    const timeMarkdown = `\`${currentTime}\``;
-    generalChannel.send(
-        `Hello, this is a scheduled message! ${getEmojiMarkdown('T1')} ${timeMarkdown}`
-    );
-}
-
-function sendMessageEverywhere() {
-    client.guilds.cache.forEach(guild => {
-        const generalChannel = guild.channels.cache.find(
-            channel =>
-                channel.isTextBased() &&
-                channel instanceof GuildChannel &&
-                channel.name === 'general'
-        ) as TextChannel;
-
-        if (!generalChannel) {
-            console.error(`General channel not found in guild: ${guild.name}`);
-            return;
-        }
-
-        const currentTime = dayjs().format('HH:mm:ss');
-        const timeMarkdown = `\`${currentTime}\``;
-        generalChannel.send(
-            `Hello, this is a scheduled message! ${getEmojiMarkdown('T1')} ${timeMarkdown}`
-        );
-    });
 }
 
 client.on(Events.InteractionCreate, async interaction => {

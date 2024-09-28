@@ -4,16 +4,7 @@ import { Command } from '@/interfaces/command';
 import { fileURLToPath, URL } from 'node:url';
 import { readdirSync } from 'node:fs';
 import { join } from 'node:path';
-import pino from 'pino';
-
-const logger = pino({
-    transport: {
-        target: 'pino-pretty',
-        options: {
-            colorize: true,
-        },
-    },
-});
+import { logger } from '../utils/logger.js';
 
 export class CustomClient extends Client {
     commands: Collection<string, Command>;

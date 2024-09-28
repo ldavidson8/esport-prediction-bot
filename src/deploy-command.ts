@@ -11,16 +11,7 @@ import {
 } from 'discord.js';
 import { env } from './env.js';
 import { Command } from './interfaces/command.js';
-import pino from 'pino';
-
-const logger = pino({
-    transport: {
-        target: 'pino-pretty',
-        options: {
-            colorize: true,
-        },
-    },
-});
+import { logger } from './utils/logger.js';
 
 const commands:
     | RESTPostAPIApplicationCommandsJSONBody[]

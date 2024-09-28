@@ -1,32 +1,17 @@
-import {
-    Events,
-    TextChannel,
-    GuildChannel,
-    ChannelType,
-    chatInputApplicationCommandMention,
-} from 'discord.js';
+import { Events, TextChannel, GuildChannel, ChannelType } from 'discord.js';
 import { CustomClient } from './classes/client.js';
 import fetch from 'node-fetch';
 import schedule from 'node-schedule';
 import dayjs from 'dayjs';
-import { getEmojiMarkdown } from './utils/teams.js';
-import pino from 'pino';
-
-const logger = pino({
-    transport: {
-        target: 'pino-pretty',
-        options: {
-            colorize: true,
-        },
-    },
-});
+import { getEmojiMarkdown, getTeamByName } from './utils/teams.js';
+import { logger } from './utils/logger.js';
 
 const client = new CustomClient();
 
 client.once(Events.ClientReady, readyClient => {
     logger.info(`Logged in as ${readyClient.user?.tag}`);
     if (!checkForPredictionsChannel()) createPredictionsChannel();
-    schedule.scheduleJob('0 0 */12 * * *', processSchedule);
+    schedule.scheduleJob('* 1 * * *', processSchedule);
     processSchedule(); // Call once at startup
 });
 
@@ -98,17 +83,34 @@ async function processSchedule() {
                 if (timeDiff <= 24 && timeDiff >= 0) {
                     const team1 = event.match.teams[0];
                     const team2 = event.match.teams[1];
+
+                    if (
+                        team1.name === 'TBD' ||
+                        team2.name === 'TBD' ||
+                        getTeamByName(team1.name) === undefined ||
+                        getTeamByName(team2.name) === undefined
+                    ) {
+                        logger.info('TBD team found, skipping');
+                        return;
+                    }
+
                     const team1Emoji = getEmojiMarkdown(team1.code) || '';
                     const team2Emoji = getEmojiMarkdown(team2.code) || '';
 
-                    const message = await predictionsChannel.send(
+                    logger.info(
                         `Upcoming match in ${timeDiff} hours: ${team1Emoji} ${team1.name} vs ${team2Emoji} ${team2.name}` +
                             `\n${event.league.name} - ${event.blockName}` +
                             `\nStarts at <t:${Math.floor(startTime.unix())}:F>`
                     );
 
-                    if (team1Emoji) await message.react(team1Emoji);
-                    if (team2Emoji) await message.react(team2Emoji);
+                    // const message = await predictionsChannel.send(
+                    //     `Upcoming match in ${timeDiff} hours: ${team1Emoji} ${team1.name} vs ${team2Emoji} ${team2.name}` +
+                    //         `\n${event.league.name} - ${event.blockName}` +
+                    //         `\nStarts at <t:${Math.floor(startTime.unix())}:F>`
+                    // );
+
+                    // if (team1Emoji) await message.react(team1Emoji);
+                    // if (team2Emoji) await message.react(team2Emoji);
                 }
             }
         }

@@ -8,9 +8,15 @@ importers:
 
   .:
     dependencies:
+      '@devraelfreeze/discordjs-pagination':
+        specifier: ^2.7.6
+        version: 2.7.6
       better-sqlite3:
         specifier: ^11.3.0
         version: 11.3.0
+      dayjs:
+        specifier: ^1.11.13
+        version: 1.11.13
       discord.js:
         specifier: ^14.16.2
         version: 14.16.2
@@ -59,6 +65,9 @@ importers:
         version: 5.6.2
 
 packages:
+
+  '@devraelfreeze/discordjs-pagination@2.7.6':
+    resolution: {integrity: sha512-mK0iMCWsk9CJC58AyvUGGxHzBZTJlxaXaboxSvcA85Tg3d4X9rerZj7Q6L8boeTNh5mbfil8IoLYicvz7gai/w==}
 
   '@discordjs/builders@1.9.0':
     resolution: {integrity: sha512-0zx8DePNVvQibh5ly5kCEei5wtPBIUbSoE9n+91Rlladz4tgtFbJ36PZMxxZrTEOQ7AHMZ/b0crT/0fCy6FTKg==}
@@ -1349,6 +1358,13 @@ packages:
     resolution: {integrity: sha512-XBx9AXhXktjUqnepgTiE5flcKIYWi/rme0Eaj+5Y0lftuGBq+jyRu/md4WnuxqgP1ubdpNCsYEYPxrzVHD8d6g==}
 
 snapshots:
+
+  '@devraelfreeze/discordjs-pagination@2.7.6':
+    dependencies:
+      discord.js: 14.16.2
+    transitivePeerDependencies:
+      - bufferutil
+      - utf-8-validate
 
   '@discordjs/builders@1.9.0':
     dependencies:

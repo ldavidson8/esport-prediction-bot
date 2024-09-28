@@ -1,0 +1,15 @@
+meta {
+  name: getLeagues
+  type: http
+  seq: 2
+}
+
+get {
+  url: https://esports-api.lolesports.com/persisted/gw/getLeagues?hl=en-US
+  body: none
+  auth: none
+}
+
+params:query {
+  hl: en-US
+}

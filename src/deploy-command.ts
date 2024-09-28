@@ -50,12 +50,16 @@ const rest = new REST().setToken(env.DISCORD_TOKEN);
             data = (await rest.put(Routes.applicationGuildCommands(env.CLIENT_ID, env.GUILD_ID), {
                 body: commands,
             })) as RESTPutAPIApplicationGuildCommandsJSONBody[];
-            logger.info(`Successfully reloaded application (/) commands for guild ${env.GUILD_ID}`);
+            logger.info(
+                `Successfully reloaded ${commands.length} application (/) commands for guild ${env.GUILD_ID}`
+            );
         } else {
             data = (await rest.put(Routes.applicationCommands(env.CLIENT_ID), {
                 body: commands,
             })) as RESTPutAPIApplicationCommandsJSONBody[];
-            logger.info('Successfully reloaded application (/) commands globally');
+            logger.info(
+                `Successfully reloaded ${commands.length} application (/) commands globally`
+            );
         }
     } catch (error) {
         logger.error(error);

@@ -1,0 +1,21 @@
+meta {
+  name: 2024 Matches
+  type: http
+  seq: 2
+}
+
+get {
+  url: https://lol.fandom.com/api.php?action=cargoquery&format=json&limit=500&tables=MatchSchedule&fields=Team1,Team2,DateTime_UTC,BestOf,Patch&where=OverviewPage%20IN%20(%22LEC%2F2024%20Season%2FWinter%20Season%22%2C%20%22LEC%2F2024%20Season%2FSpring%20Season%22%2C%20%22LEC%2F2024%20Season%2FSummer%20Season%22%2C%20%22LCK%2F2024%20Season%2FWinter%20Season%22%2C%20%22LCK%2F2024%20Season%2FSpring%20Season%22%2C%20%22LCK%2F2024%20Season%2FSummer%20Season%22%2C%20%22LCS%2F2024%20Season%2FWinter%20Season%22%2C%20%22LCS%2F2024%20Season%2FSpring%20Season%22%2C%20%22LCS%2F2024%20Season%2FSummer%20Season%22%2C%20%22LPL%2F2024%20Season%2FWinter%20Season%22%2C%20%22LPL%2F2024%20Season%2FSpring%20Season%22%2C%20%22LPL%2F2024%20Season%2FSummer%20Season%22)&order_by=DateTime_UTC ASC
+  body: none
+  auth: none
+}
+
+params:query {
+  action: cargoquery
+  format: json
+  limit: 500
+  tables: MatchSchedule
+  fields: Team1,Team2,DateTime_UTC,BestOf,Patch
+  where: OverviewPage IN ("LEC/2024 Season/Winter Season", "LEC/2024 Season/Spring Season", "LEC/2024 Season/Summer Season", "LCK/2024 Season/Winter Season", "LCK/2024 Season/Spring Season", "LCK/2024 Season/Summer Season", "LCS/2024 Season/Winter Season", "LCS/2024 Season/Spring Season", "LCS/2024 Season/Summer Season", "LPL/2024 Season/Winter Season", "LPL/2024 Season/Spring Season", "LPL/2024 Season/Summer Season")
+  order_by: DateTime_UTC ASC
+}

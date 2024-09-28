@@ -1,0 +1,18 @@
+meta {
+  name: Get Worlds Swiss
+  type: http
+  seq: 3
+}
+
+get {
+  url: https://api.liquipedia.net/api/v3/match?wiki=leagueoflegends&conditions=[[pagename::World_Championship/2024/Swiss_Stage]]&rawstreams=false&streamurls=false
+  body: none
+  auth: none
+}
+
+params:query {
+  wiki: leagueoflegends
+  conditions: [[pagename::World_Championship/2024/Swiss_Stage]]
+  rawstreams: false
+  streamurls: false
+}

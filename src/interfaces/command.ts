@@ -1,4 +1,9 @@
-import { ChatInputCommandInteraction, SlashCommandBuilder, PermissionResolvable, RESTPostAPIApplicationCommandsJSONBody, RESTPostAPIApplicationGuildCommandsJSONBody } from "discord.js";
+import {
+    ChatInputCommandInteraction,
+    type PermissionResolvable,
+    type RESTPostAPIApplicationCommandsJSONBody,
+    type RESTPostAPIApplicationGuildCommandsJSONBody,
+} from 'discord.js';
 
 interface CustomOptions {
     userPermissions?: PermissionResolvable[];

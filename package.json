@@ -6,7 +6,8 @@
     "scripts": {
         "clean": "rimraf dist",
         "build": "tsc",
-        "lint": "eslint . --ext .ts",
+        "lint": "eslint .",
+        "lint:fix": "eslint --fix .",
         "format": "prettier --write .",
         "start": "pnpm clean && pnpm build && node dist/bot.js",
         "pm2:start": "pm2 start ecosystem.config.cjs",
@@ -32,12 +33,15 @@
         "zod": "^3.23.8"
     },
     "devDependencies": {
+        "@eslint/js": "^9.11.1",
         "@types/better-sqlite3": "^7.6.11",
         "@types/node-schedule": "^2.1.7",
         "eslint": "^9.11.1",
+        "globals": "^15.9.0",
         "prettier": "^3.3.3",
         "rimraf": "^6.0.1",
-        "typescript": "^5.6.2"
+        "typescript": "^5.6.2",
+        "typescript-eslint": "^8.7.0"
     },
     "type": "module"
 }

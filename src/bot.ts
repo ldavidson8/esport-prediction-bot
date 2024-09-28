@@ -3,19 +3,37 @@ import { CustomClient } from './classes/client.js';
 import fetch from 'node-fetch';
 import schedule from 'node-schedule';
 import dayjs from 'dayjs';
-import { getEmojiMarkdown, getTeamByName } from './utils/teams.js';
+import { getEmojiMarkdown } from './utils/teams.js';
 import { logger } from './utils/logger.js';
-import { env } from './env.js';
 
 const client = new CustomClient();
 
 client.once(Events.ClientReady, readyClient => {
     logger.info(`Logged in as ${readyClient.user?.tag}`);
     if (!checkForPredictionsChannel()) createPredictionsChannel();
-    // Test Call every 10 seconds
-    // schedule.scheduleJob('*/10 * * * * *', processSchedule);
-    processSchedule(client, env.GUILD_ID);
+    schedule.scheduleJob({ second: 55 }, sendMessage);
+    // processSchedule(client, env.GUILD_ID);
 });
+
+function sendMessage() {
+    const guild = client.guilds.cache.first();
+    if (!guild) {
+        logger.error('Guild not found');
+        return;
+    }
+
+    const generalChannel = guild.channels.cache.find(
+        channel =>
+            channel.isTextBased() && channel instanceof TextChannel && channel.name === 'general'
+    ) as TextChannel;
+
+    if (!generalChannel) {
+        logger.error('General channel not found');
+        return;
+    }
+
+    generalChannel.send('Hello, this is a test message!');
+}
 
 function checkForPredictionsChannel(): boolean {
     for (const guild of client.guilds.cache.values()) {
@@ -103,7 +121,7 @@ async function sendEventMessage(channel: TextChannel, event: Event, timeDiff: nu
     const team1 = event.match.teams[0];
     const team2 = event.match.teams[1];
 
-    if (team1.name === 'TBD' || team2.name === 'TBD') {
+    if (!team1 || !team2 || team1.name === 'TBD' || team2.name === 'TBD') {
         logger.info('TBD team found, skipping');
         return;
     }
@@ -151,7 +169,7 @@ async function processSchedule(client: CustomClient, targetGuildId?: string): Pr
         const now = dayjs();
         const upcomingEvents = filterUpcomingEvents(data.data.schedule.events, now);
 
-        let guildsToProcess: Guild[] = targetGuildId
+        const guildsToProcess: Guild[] = targetGuildId
             ? [client.guilds.cache.get(targetGuildId)].filter(
                   (guild): guild is Guild => guild !== undefined
               )

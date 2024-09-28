@@ -1,4 +1,10 @@
-import { Events, TextChannel, GuildChannel, ChannelType } from 'discord.js';
+import {
+    Events,
+    TextChannel,
+    GuildChannel,
+    ChannelType,
+    chatInputApplicationCommandMention,
+} from 'discord.js';
 import { CustomClient } from './classes/client.js';
 import fetch from 'node-fetch';
 import schedule from 'node-schedule';
@@ -24,20 +30,23 @@ client.once(Events.ClientReady, readyClient => {
     processSchedule(); // Call once at startup
 });
 
-function checkForPredictionsChannel() {
-    const predictionsChannel = client.channels.cache.find(
-        channel =>
-            channel.isTextBased() &&
-            channel instanceof GuildChannel &&
-            channel.name === 'bot-predictions'
-    ) as TextChannel;
+function checkForPredictionsChannel(): boolean {
+    for (const guild of client.guilds.cache.values()) {
+        const predictionsChannel = guild.channels.cache.find(
+            channel =>
+                channel.isTextBased() &&
+                channel instanceof GuildChannel &&
+                channel.name === 'bot-predictions'
+        );
 
-    if (!predictionsChannel) {
-        logger.error('Channel not found');
-        return null;
+        if (predictionsChannel) {
+            logger.info('Predictions channel found');
+            return true;
+        }
     }
 
-    return predictionsChannel;
+    logger.info('Predictions channel not found');
+    return false;
 }
 
 async function createPredictionsChannel() {
@@ -67,37 +76,40 @@ async function processSchedule() {
         const data: any = await response.json();
 
         const now = dayjs();
-        const predictionsChannel = client.channels.cache.find(
-            channel =>
-                channel.isTextBased() &&
-                channel instanceof GuildChannel &&
-                channel.name === 'bot-predictions'
-        ) as TextChannel;
 
-        if (!predictionsChannel) {
-            logger.error('Channel not found');
-            return;
-        }
+        for (const guild of client.guilds.cache.values()) {
+            const predictionsChannel = guild.channels.cache.find(
+                channel =>
+                    channel.isTextBased() &&
+                    channel instanceof GuildChannel &&
+                    channel.name === 'bot-predictions'
+            ) as TextChannel;
 
-        for (const event of data.data.schedule.events) {
-            if (event.state !== 'unstarted') continue;
-            const startTime = dayjs(event.startTime);
-            const timeDiff = startTime.diff(now, 'hours');
+            if (!predictionsChannel) {
+                logger.error(`Channel not found in guild: ${guild.name}`);
+                continue;
+            }
 
-            if (timeDiff <= 24 && timeDiff >= 0) {
-                const team1 = event.match.teams[0];
-                const team2 = event.match.teams[1];
-                const team1Emoji = getEmojiMarkdown(team1.code) || '';
-                const team2Emoji = getEmojiMarkdown(team2.code) || '';
+            for (const event of data.data.schedule.events) {
+                if (event.state !== 'unstarted') continue;
+                const startTime = dayjs(event.startTime);
+                const timeDiff = startTime.diff(now, 'hours');
 
-                const message = await predictionsChannel.send(
-                    `Upcoming match in ${timeDiff} hours: ${team1Emoji} ${team1.name} vs ${team2Emoji} ${team2.name}` +
-                        `\n${event.league.name} - ${event.blockName}` +
-                        `\nStarts at <t:${Math.floor(startTime.unix())}:F>`
-                );
+                if (timeDiff <= 24 && timeDiff >= 0) {
+                    const team1 = event.match.teams[0];
+                    const team2 = event.match.teams[1];
+                    const team1Emoji = getEmojiMarkdown(team1.code) || '';
+                    const team2Emoji = getEmojiMarkdown(team2.code) || '';
 
-                if (team1Emoji) await message.react(team1Emoji);
-                if (team2Emoji) await message.react(team2Emoji);
+                    const message = await predictionsChannel.send(
+                        `Upcoming match in ${timeDiff} hours: ${team1Emoji} ${team1.name} vs ${team2Emoji} ${team2.name}` +
+                            `\n${event.league.name} - ${event.blockName}` +
+                            `\nStarts at <t:${Math.floor(startTime.unix())}:F>`
+                    );
+
+                    if (team1Emoji) await message.react(team1Emoji);
+                    if (team2Emoji) await message.react(team2Emoji);
+                }
             }
         }
     } catch (error) {

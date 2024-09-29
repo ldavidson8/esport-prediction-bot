@@ -11,8 +11,8 @@ const client = new CustomClient();
 client.once(Events.ClientReady, readyClient => {
     logger.info(`Logged in as ${readyClient.user?.tag}`);
     if (!checkForPredictionsChannel()) createPredictionsChannel();
-    schedule.scheduleJob({ second: 55 }, sendMessage);
-    // processSchedule(client, env.GUILD_ID);
+    // schedule.scheduleJob('*/10 * * * * *', () => processSchedule(client));
+    sendMessage();
 });
 
 function sendMessage() {

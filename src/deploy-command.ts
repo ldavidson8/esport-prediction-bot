@@ -10,7 +10,7 @@ import {
     Routes,
 } from 'discord.js';
 import { env } from './env.js';
-import { Command } from './interfaces/command.js';
+import type { Command } from './interfaces/command.js';
 import { logger } from './utils/logger.js';
 
 const commands:

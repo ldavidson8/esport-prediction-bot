@@ -1,14 +1,5 @@
 import Database from 'better-sqlite3';
-import pino from 'pino';
-
-const logger = pino({
-    transport: {
-        target: 'pino-pretty',
-        options: {
-            colorize: true,
-        },
-    },
-});
+import { logger } from '../utils/logger.js';
 
 let db: Database.Database;
 

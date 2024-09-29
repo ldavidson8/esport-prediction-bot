@@ -1,0 +1,17 @@
+meta {
+  name: Tournaments
+  type: http
+  seq: 1
+}
+
+get {
+  url: https://api.liquipedia.net/api/v3/tournament?wiki=valorant&conditions=[[liquipediatier::1]] AND [[startdate::>2024-01-01]]&order=startdate ASC
+  body: none
+  auth: none
+}
+
+params:query {
+  wiki: valorant
+  conditions: [[liquipediatier::1]] AND [[startdate::>2024-01-01]]
+  order: startdate ASC
+}

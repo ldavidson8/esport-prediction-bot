@@ -6,7 +6,7 @@ import {
     ActionRowBuilder,
     type MessageActionRowComponentBuilder,
 } from 'discord.js';
-import { Command } from '../interfaces/command';
+import type { Command } from '../interfaces/command.js';
 
 export const metadata = new SlashCommandBuilder()
     .setName('schedule')

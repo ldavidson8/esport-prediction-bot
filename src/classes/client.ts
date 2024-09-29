@@ -1,6 +1,6 @@
 import { Client, Collection, GatewayIntentBits } from 'discord.js';
 import { env } from '../env.js';
-import { Command } from '@/interfaces/command';
+import type { Command } from '../interfaces/command.js';
 import { fileURLToPath, URL } from 'node:url';
 import { readdirSync } from 'node:fs';
 import { join } from 'node:path';

@@ -122,7 +122,7 @@ export function getEmojiMarkdown(identifier: string): string | undefined {
         const team = teams.find(team => team.shortcode === identifier || team.name === identifier);
         return team?.emojiMarkdown;
     } catch (error) {
-        logger.warn(`Failed to get emoji for ${identifier}`);
+        logger.warn(`Failed to get emoji for ${identifier}`, error);
         return '';
     }
 }

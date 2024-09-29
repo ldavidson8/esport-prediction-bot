@@ -1,6 +1,6 @@
 {
   "version": "1",
-  "name": "Lolesports API",
+  "name": "API Collections",
   "type": "collection",
   "ignore": [
     "node_modules",

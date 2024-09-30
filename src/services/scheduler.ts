@@ -2,18 +2,23 @@
 
 import { TextChannel, GuildChannel, ChannelType, Guild, MessageReaction, User } from 'discord.js';
 import { CustomClient } from '../classes/client.js';
-import fetch from 'node-fetch';
 import dayjs from 'dayjs';
 import { getEmojiMarkdown } from '../utils/teams.js';
 import Database from 'better-sqlite3';
 import { logger } from '../utils/logger.js';
+import { scheduleJob } from 'node-schedule';
+import { fetchMatchData } from '../api/fetchMatchData.js';
+import { fetchScheduleData } from '../api/fetchScheduleData.js';
 
 const db = new Database('data.db');
 
 db.exec(`
     CREATE TABLE IF NOT EXISTS posted_matches (
     id TEXT PRIMARY KEY,
-    posted_at INTEGER
+    posted_at INTEGER,
+    message_id TEXT,
+    channel_id TEXT,
+    guild_id TEXT
     );
     CREATE TABLE IF NOT EXISTS user_predictions (
     match_id TEXT,
@@ -36,29 +41,10 @@ function addPostedMatch(
     guildId: string
 ): void {
     const stmt = db.prepare(
-        'INSERT INTO posted_matches (id, posted_at, message_id, channel_id, guild_id) VALUES (?, ?)'
+        'INSERT OR REPLACE INTO posted_matches (id, posted_at, message_id, channel_id, guild_id) VALUES (?, ?, ?, ?, ?)'
     );
     stmt.run(matchId, Date.now(), messageId, channelId, guildId);
-
-    const twentyFourHoursAgo = dayjs().subtract(24, 'hours').unix();
-    db.prepare('DELETE FROM posted_matches WHERE posted_at < ?').run(twentyFourHoursAgo);
-}
-
-async function sendMessage(client: CustomClient, channelName: string, message: string) {
-    for (const guild of client.guilds.cache.values()) {
-        const channel = guild.channels.cache.find(
-            ch => ch.name === channelName && ch instanceof TextChannel && ch.isTextBased()
-        ) as TextChannel | undefined;
-
-        if (channel) {
-            try {
-                await channel.send(message);
-                logger.info(`Message sent to ${channelName} in ${guild.name}`);
-            } catch (error) {
-                logger.error(`Failed to send message to ${channelName} in ${guild.name}`, error);
-            }
-        }
-    }
+    logger.info(`Added match ${matchId} to posted_matches`);
 }
 
 function findPredictionsChannel(guild: Guild): TextChannel | null {
@@ -77,14 +63,9 @@ function findPredictionsChannel(guild: Guild): TextChannel | null {
     return predictionsChannel;
 }
 
-function checkForPredictionsChannel(client: CustomClient): boolean {
+export function checkForPredictionsChannel(client: CustomClient): boolean {
     for (const guild of client.guilds.cache.values()) {
-        const predictionsChannel = guild.channels.cache.find(
-            channel =>
-                channel.isTextBased() &&
-                channel instanceof GuildChannel &&
-                channel.name === 'bot-predictions'
-        );
+        const predictionsChannel = findPredictionsChannel(guild);
 
         if (predictionsChannel) {
             logger.info('Predictions channel found');
@@ -96,7 +77,7 @@ function checkForPredictionsChannel(client: CustomClient): boolean {
     return false;
 }
 
-async function createPredictionsChannel(client: CustomClient) {
+export async function createPredictionsChannel(client: CustomClient) {
     const guild = client.guilds.cache.first();
     if (!guild) {
         logger.error('Guild not found');
@@ -109,17 +90,6 @@ async function createPredictionsChannel(client: CustomClient) {
     });
 
     return predictionsChannel;
-}
-
-async function fetchScheduleData(): Promise<any> {
-    const url =
-        'https://esports-api.lolesports.com/persisted/gw/getSchedule?hl=en-US&leagueId=98767975604431411';
-    const options = {
-        method: 'GET',
-        headers: { 'x-api-key': '0TvQnueqKa5mxJntVWt0w4LpLfEkrV1Ta8rQBb9Z' },
-    };
-    const response = await fetch(url, options);
-    return response.json();
 }
 
 interface Event {
@@ -156,6 +126,9 @@ async function sendEventMessage(channel: TextChannel, event: Event, timeDiff: nu
     const team1Emoji = getEmojiMarkdown(team1.code);
     const team2Emoji = getEmojiMarkdown(team2.code);
 
+    const team1EmojiId = team1Emoji.match(/:(\d+)>/)?.[1];
+    const team2EmojiId = team2Emoji.match(/:(\d+)>/)?.[1];
+
     const startTime = dayjs(event.startTime);
     const messageContent =
         `Upcoming match in ${timeDiff} hours: ${team1Emoji} ${team1.name} vs ${team2Emoji} ${team2.name}` +
@@ -170,26 +143,74 @@ async function sendEventMessage(channel: TextChannel, event: Event, timeDiff: nu
 
         addPostedMatch(event.id, message.id, channel.id, channel.guild.id);
 
-        const filter = (reaction: MessageReaction, user: User) =>
-            (reaction.emoji.name === team1Emoji || reaction.emoji.name === team2Emoji) && !user.bot;
+        const validEmojiIds = [team1EmojiId, team2EmojiId].filter(Boolean);
+
+        const userReactions = new Map<string, Set<string>>();
+
+        const filter = (reaction: MessageReaction, user: User) => !user.bot;
 
         const collector = message.createReactionCollector({
             filter,
             time: startTime.diff(dayjs()),
         });
 
-        collector.on('collect', (reaction, user) => {
-            const prediction = reaction.emoji.name === team1Emoji ? team1.code : team2.code;
+        collector.on('collect', async (reaction, user) => {
+            const prediction = reaction.emoji.id === team1EmojiId ? team1.code : team2.code;
             const stmt = db.prepare(
                 'INSERT OR REPLACE INTO user_predictions (match_id, user_id, prediction, is_correct) VALUES (?, ?, ?, ?)'
             );
             stmt.run(event.id, user.id, prediction, null);
+        });
 
-            const otherEmoji = reaction.emoji.name === team1Emoji ? team2Emoji : team1Emoji;
-            const otherReaction = message.reactions.cache.find(
-                reaction => reaction.emoji.name === otherEmoji
-            );
-            if (otherReaction) otherReaction.users.remove(user.id);
+        message.client.on('messageReactionAdd', async (reaction, user) => {
+            if (reaction.message.id !== message.id || user.bot) return;
+
+            if (!validEmojiIds.includes(reaction.emoji.id)) {
+                await reaction.users.remove(user.id);
+                try {
+                    await channel.send({
+                        content: `Please only use ${team1Emoji} or ${team2Emoji} to predict the match outcome.`,
+                        ephemeral: true,
+                        target: user.id,
+                    });
+                } catch (error) {
+                    logger.error('Failed to send ephemeral message', error);
+                }
+            } else {
+                if (!userReactions.has(user.id)) {
+                    userReactions.set(user.id, new Set());
+                }
+                const userReactionsSet = userReactions.get(user.id);
+
+                if (userReactionsSet?.size === 1 && !userReactionsSet.has(reaction.emoji.id)) {
+                    await reaction.users.remove(user.id);
+                    try {
+                        await channel.send({
+                            content: `You can only predict one outcome for this match. Please choose either ${team1Emoji} or ${team2Emoji}.`,
+                            ephemeral: true,
+                            target: user.id,
+                        });
+                    } catch (error) {
+                        logger.error('Failed to send ephemeral message', error);
+                    }
+                } else {
+                    userReactionsSet?.add(reaction.emoji.id);
+                }
+            }
+        });
+
+        message.client.on('messageReactionRemove', (reaction, user) => {
+            if (reaction.message.id !== message.id || user.bot) return;
+
+            if (validEmojiIds.includes(reaction.emoji.id)) {
+                const userReactionSet = userReactions.get(user.id);
+                if (userReactionSet) {
+                    userReactionSet.delete(reaction.emoji.id);
+                    if (userReactionSet.size === 0) {
+                        userReactions.delete(user.id);
+                    }
+                }
+            }
         });
 
         collector.on('end', async () => {
@@ -213,52 +234,37 @@ async function processGuild(guild: Guild, events: Event[], now: dayjs.Dayjs) {
 }
 
 async function checkPastMatches(client: CustomClient) {
-    const twentyFourHoursAgo = dayjs().subtract(24, 'hours').unix();
+    const twelveHoursAgo = dayjs().subtract(12, 'hours').unix();
     const matches = db
         .prepare('SELECT * FROM posted_matches WHERE posted_at < ?')
-        .all(twentyFourHoursAgo);
+        .all(twelveHoursAgo);
 
     for (const match of matches) {
         try {
-            const guild = await client.guilds.fetch(match.guild_id);
-            const channel = guild.channels.cache.get(match.channel_id) as TextChannel;
-            const message = await channel.messages.fetch(match.message_id);
-
             const matchData = await fetchMatchData(match.id);
             const winner = determineWinner(matchData);
 
-            if (winner && message) {
-                updatePredictions(match.id, matchData.winner);
-                await message.edit(
-                    `${message.content}\nMatch completed. Winner: ${matchData.winner}`
-                );
-            } else {
-                await message.send(`${match.id} winner: ${winner}`);
+            if (winner) {
+                updatePredictions(match.id, winner);
+
+                try {
+                    const guild = await client.guilds.fetch(match.guild_id);
+                    const channel = guild.channels.cache.get(match.channel_id) as TextChannel;
+                    const message = await channel.messages.fetch(match.message_id);
+                    await message.edit(`${message.content}\nMatch completed. Winner: ${winner}`);
+                } catch (error) {
+                    logger.error(`Failed to update message for match ${match.id}:`, error);
+                }
+
+                db.prepare('DELETE FROM posted_matches WHERE id = ?').run(match.id);
             }
         } catch (error) {
             logger.error(`Failed to process past match ${match.id}:`, error);
         }
     }
-
-    db.prepare('DELETE FROM posted_matches WHERE posted_at < ?').run(twentyFourHoursAgo);
 }
 
-async function fetchMatchData(matchId: string): Promise<any> {
-    const url = `https://esports-api.lolesports.com/persisted/gw/getEventDetails?hl=en-US&id=${matchId}`;
-    const options = {
-        method: 'GET',
-        headers: { 'x-api-key': '0TvQnueqKa5mxJntVWt0w4LpLfEkrV1Ta8rQBb9Z' },
-    };
-    try {
-        const response = await fetch(url, options);
-        const data = await response.json();
-        return data.data.event.match;
-    } catch (error) {
-        logger.error(`Failed to fetch match data for ${matchId}`, error);
-    }
-}
-
-function determineWinner(matchData: any): string | null {
+export function determineWinner(matchData: any): string | null {
     const { strategy, teams } = matchData;
     const winThreshold = Math.ceil(strategy.count / 2);
 
@@ -281,7 +287,7 @@ function updatePredictions(matchId: string, winner: string) {
     stmt.run(winner, matchId);
 }
 
-async function processSchedule(client: CustomClient, targetGuildId?: string): Promise<void> {
+export async function processSchedule(client: CustomClient, targetGuildId?: string): Promise<void> {
     await checkPastMatches(client);
     try {
         const data = await fetchScheduleData();
@@ -302,11 +308,13 @@ async function processSchedule(client: CustomClient, targetGuildId?: string): Pr
     }
 }
 
-export {
-    processSchedule,
-    checkForPredictionsChannel,
-    createPredictionsChannel,
-    sendMessage,
-    fetchMatchData,
-    determineWinner,
-};
+async function hourlyScheduleProcess(client: CustomClient) {
+    logger.info('Running hourly schedule processor');
+    await checkPastMatches(client);
+    await processSchedule(client);
+}
+
+export function startHourlyScheduleProcessor(client: CustomClient) {
+    // scheduleJob('0 */1 * * *', () => hourlyScheduleProcess(client));
+    scheduleJob('*/30 * * * * *', () => hourlyScheduleProcess(client));
+}

@@ -11,7 +11,11 @@ export class CustomClient extends Client {
 
     constructor() {
         super({
-            intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages],
+            intents: [
+                GatewayIntentBits.Guilds,
+                GatewayIntentBits.GuildMessages,
+                GatewayIntentBits.GuildMessageReactions,
+            ],
             failIfNotExists: true,
             rest: {
                 retries: 3,

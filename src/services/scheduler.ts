@@ -186,9 +186,8 @@ async function sendEventMessage(channel: TextChannel, event: Event, timeDiff: nu
                     await reaction.users.remove(user.id);
                     try {
                         await channel.send({
-                            content: `You can only predict one outcome for this match. Please choose either ${team1Emoji} or ${team2Emoji}.`,
+                            content: ` <@${user.id}> You can only predict one outcome for this match. Please choose either ${team1Emoji} or ${team2Emoji}.`,
                             ephemeral: true,
-                            target: user.id,
                         });
                     } catch (error) {
                         logger.error('Failed to send ephemeral message', error);

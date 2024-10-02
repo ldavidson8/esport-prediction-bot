@@ -18,12 +18,7 @@
         "emitDecoratorMetadata": false,
         "experimentalDecorators": true,
         "skipLibCheck": true,
-        "forceConsistentCasingInFileNames": true,
-
-        "baseUrl": ".",
-        "paths": {
-            "@/*": ["src/*"]
-        }
+        "forceConsistentCasingInFileNames": true
     },
     "exclude": ["dist", "node_modules", "test"]
 }

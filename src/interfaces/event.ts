@@ -1,7 +1,8 @@
+import { CustomClient } from '../classes/client.js';
 import type { ClientEvents } from 'discord.js';
 
-export interface Event<Key extends keyof ClientEvents> {
-    name: Key;
+export interface Event {
+    name: keyof ClientEvents;
     once?: boolean;
-    execute(...args: ClientEvents[Key]): Promise<void> | void;
+    execute(client: CustomClient, ...args: unknown[]): void;
 }

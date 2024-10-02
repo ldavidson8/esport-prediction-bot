@@ -4,6 +4,6 @@
     "editor.codeActionsOnSave": {
         "source.fixAll.eslint": "always"
     },
-    "eslint.rules.customizations": [{ "rule": "*", "severity": "warn" }],
+    // "eslint.rules.customizations": [{ "rule": "*", "severity": "warn" }],
     "typescript.tsdk": "node_modules/typescript/lib"
 }

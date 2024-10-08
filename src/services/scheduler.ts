@@ -1,6 +1,4 @@
-// @ts-nocheck
-
-import { TextChannel, Guild, MessageReaction, User } from 'discord.js';
+import { TextChannel, Guild, MessageReaction, User, ReactionCollector } from 'discord.js';
 import { CustomClient } from '../classes/client.js';
 import dayjs from 'dayjs';
 import { getEmojiMarkdown } from '../utils/teams.js';
@@ -9,11 +7,7 @@ import { scheduleJob } from 'node-schedule';
 import { fetchMatchData } from '../api/fetchMatchData.js';
 import { fetchScheduleData } from '../api/fetchScheduleData.js';
 import { ensurePredictionsChannel } from '../utils/channelUtils.js';
-import {
-    determineWinner,
-    filterUpcomingEvents,
-    type Event as CustomEvent,
-} from '../utils/eventUtils.js';
+import { determineWinner, filterUpcomingEvents, getBestOf } from '../utils/eventUtils.js';
 import {
     addPostedMatch,
     upsertUserPrediction,
@@ -21,10 +15,19 @@ import {
     deleteMatchById,
     getPastMatches,
 } from '../database/database.js';
+import type { Event as CustomEvent } from '../interfaces/leagueEvent.js';
 
 const messageCollectors = new Map<
     string,
-    { collector: any; userReactions: Map<string, Set<string>> }
+    {
+        collector: ReactionCollector;
+        userReactions: Map<string, Set<string>>;
+        validEmojiIds: string[];
+        team1Emoji: string;
+        team2Emoji: string;
+        channel: TextChannel;
+        event: CustomEvent;
+    }
 >();
 
 function handleMessageReactionAdd(client: CustomClient, reaction: MessageReaction, user: User) {
@@ -33,7 +36,7 @@ function handleMessageReactionAdd(client: CustomClient, reaction: MessageReactio
 
     const { userReactions, validEmojiIds, team1Emoji, team2Emoji, channel, event } = messageData;
 
-    if (!validEmojiIds.includes(reaction.emoji.id)) {
+    if (reaction.emoji.id && !validEmojiIds.includes(reaction.emoji.id)) {
         reaction.users.remove(user.id);
         try {
             channel.send({
@@ -49,7 +52,11 @@ function handleMessageReactionAdd(client: CustomClient, reaction: MessageReactio
         }
         const userReactionsSet = userReactions.get(user.id);
 
-        if (userReactionsSet?.size === 1 && !userReactionsSet.has(reaction.emoji.id)) {
+        if (
+            userReactionsSet?.size === 1 &&
+            reaction.emoji.id &&
+            !userReactionsSet.has(reaction.emoji.id)
+        ) {
             reaction.users.remove(user.id);
             try {
                 channel.send({
@@ -60,12 +67,14 @@ function handleMessageReactionAdd(client: CustomClient, reaction: MessageReactio
                 logger.error('Failed to send message', error);
             }
         } else {
-            userReactionsSet?.add(reaction.emoji.id);
+            if (reaction.emoji.id) {
+                userReactionsSet?.add(reaction.emoji.id);
+            }
             const prediction =
                 reaction.emoji.id === validEmojiIds[0]
-                    ? event.match.teams[0].code
-                    : event.match.teams[1].code;
-            upsertUserPrediction(event.id, user.id, prediction);
+                    ? (event.match.teams[0]?.code ?? 'Unknown')
+                    : (event.match.teams[1]?.code ?? 'Unknown');
+            upsertUserPrediction(event.match.id, user.id, prediction);
         }
     }
 }
@@ -76,7 +85,7 @@ function handleMessageReactionRemove(reaction: MessageReaction, user: User) {
 
     const { userReactions, validEmojiIds } = messageData;
 
-    if (validEmojiIds.includes(reaction.emoji.id)) {
+    if (reaction.emoji.id && validEmojiIds.includes(reaction.emoji.id)) {
         const userReactionSet = userReactions.get(user.id);
         if (userReactionSet) {
             userReactionSet.delete(reaction.emoji.id);
@@ -88,13 +97,25 @@ function handleMessageReactionRemove(reaction: MessageReaction, user: User) {
 }
 
 export function setupGlobalListeners(client: CustomClient) {
-    client.on('messageReactionAdd', (reaction, user) =>
-        handleMessageReactionAdd(client, reaction, user)
-    );
+    client.on('messageReactionAdd', async (reaction, user) => {
+        try {
+            const fullReaction = reaction.partial ? await reaction.fetch() : reaction;
+            const fullUser = user.partial ? await user.fetch() : user;
+            handleMessageReactionAdd(client, fullReaction, fullUser);
+        } catch (error) {
+            logger.error('Failed to fetch reaction', error);
+        }
+    });
 
-    client.on('messageReactionRemove', (reaction, user) =>
-        handleMessageReactionRemove(reaction, user)
-    );
+    client.on('messageReactionRemove', async (reaction, user) => {
+        try {
+            const fullReaction = reaction.partial ? await reaction.fetch() : reaction;
+            const fullUser = user.partial ? await user.fetch() : user;
+            handleMessageReactionRemove(fullReaction, fullUser);
+        } catch (error) {
+            logger.error('Failed to fetch reaction', error);
+        }
+    });
 }
 
 export async function sendEventMessage(channel: TextChannel, event: CustomEvent, timeDiff: number) {
@@ -109,8 +130,11 @@ export async function sendEventMessage(channel: TextChannel, event: CustomEvent,
     const team1Emoji = getEmojiMarkdown(team1.code);
     const team2Emoji = getEmojiMarkdown(team2.code);
 
-    const team1EmojiId = team1Emoji.match(/:(\d+)>/)?.[1];
-    const team2EmojiId = team2Emoji.match(/:(\d+)>/)?.[1];
+    const team1EmojiId = team1Emoji ? team1Emoji.match(/:(\d+)>/)?.[1] : undefined;
+    const team2EmojiId = team2Emoji ? team2Emoji.match(/:(\d+)>/)?.[1] : undefined;
+
+    const bestOf = getBestOf(event);
+    const matchId = event.match.id;
 
     const startTime = dayjs(event.startTime);
     const messageContent = {
@@ -132,11 +156,11 @@ export async function sendEventMessage(channel: TextChannel, event: CustomEvent,
                 ],
                 footer: {
                     text: `Match ID: ${matchId}`,
-                    icon_url: 'https://lolesports.com/favicon.ico',
+                    icon_url: 'http://static.lolesports.com/leagues/1592594612171_WorldsDarkBG.png',
                 },
                 url: `https://lolesports.com/vod/${matchId}`,
                 color: 0x2f4ff1,
-                timestamp: new Date(event.startTime).toISOString(),
+                timestamp: startTime.toISOString(),
             },
         ],
     };
@@ -147,15 +171,17 @@ export async function sendEventMessage(channel: TextChannel, event: CustomEvent,
         if (team1Emoji) await message.react(team1Emoji);
         if (team2Emoji) await message.react(team2Emoji);
 
-        addPostedMatch(event.id, message.id, channel.id, channel.guild.id);
+        addPostedMatch(matchId, message.id, channel.id, channel.guild.id);
 
-        const validEmojiIds = [team1EmojiId, team2EmojiId].filter(Boolean);
+        const validEmojiIds: string[] = [team1EmojiId, team2EmojiId].filter(
+            (id): id is string => !!id
+        );
 
         const userReactions = new Map<string, Set<string>>();
 
         const filter = (reaction: MessageReaction, user: User) => !user.bot;
 
-        const collector = message.createReactionCollector({
+        const collector: ReactionCollector = message.createReactionCollector({
             filter,
             time: startTime.diff(dayjs()),
         });
@@ -164,8 +190,8 @@ export async function sendEventMessage(channel: TextChannel, event: CustomEvent,
             collector,
             userReactions,
             validEmojiIds,
-            team1Emoji,
-            team2Emoji,
+            team1Emoji: team1Emoji!,
+            team2Emoji: team2Emoji!,
             channel,
             event,
         });
@@ -246,16 +272,22 @@ export async function processSchedule(client: CustomClient, targetGuildId?: stri
         }
     } catch (error) {
         logger.error('Error fetching schedule', error);
+        if (error instanceof Error) {
+            logger.error(error.stack);
+            logger.error(error.message);
+        }
     }
 }
 
-async function hourlyScheduleProcess(client: CustomClient) {
-    logger.info('Running hourly schedule processor');
+async function scheduleProcess(client: CustomClient) {
+    logger.info('Running schedule processor');
     await checkPastMatches(client);
     await processSchedule(client);
 }
 
-export function startHourlyScheduleProcessor(client: CustomClient) {
-    // scheduleJob('0 */1 * * *', () => hourlyScheduleProcess(client)); // every hour
-    scheduleJob('*/30 * * * * *', () => hourlyScheduleProcess(client)); // every 30 seconds
+export function startScheduleProcessor(client: CustomClient) {
+    scheduleJob('*/5 * * * *', () => scheduleProcess(client)); // run every 5 minutes
+
+    /** Test script for running in seconds */
+    // scheduleJob('*/10 * * * * *', () => scheduleProcess(client));
 }

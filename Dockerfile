@@ -1,5 +1,5 @@
 # Stage 1: Build
-FROM node:20-slim AS builder
+FROM node:20-slim AS build
 
 # Set working directory
 WORKDIR /app
@@ -14,7 +14,7 @@ RUN npm install -g pnpm && pnpm install
 COPY . .
 
 # Build the application
-RUN pnpm build
+RUN pnpm run build
 
 # Stage 2: Production
 FROM node:20-slim AS production
@@ -22,18 +22,14 @@ FROM node:20-slim AS production
 # Set working directory
 WORKDIR /app
 
-# Copy only the necessary files from the builder stage
-COPY --from=builder /app/package.json /app/pnpm-lock.yaml ./
-COPY --from=builder /app/dist ./dist
+# Copy only the necessary files from the build stage
+COPY --from=build /app/dist ./dist
+COPY --from=build /app/package.json ./
+COPY --from=build /app/pnpm-lock.yaml ./
+
 
 # Install only production dependencies
 RUN npm install -g pnpm && pnpm install --prod
 
-# Copy ecosystem.config.cjs for PM2
-COPY ecosystem.config.cjs ./
-
-# Expose the port the bot will run on
-EXPOSE 3000
-
-# Start the bot using PM2
-CMD ["pm2-runtime", "ecosystem.config.cjs"]
+# Command to run the application
+CMD ["node", "dist/bot.js"]

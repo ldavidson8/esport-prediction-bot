@@ -1,5 +1,6 @@
 import { logger } from '../utils/logger.js';
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export async function fetchMatchData(matchId: string): Promise<any> {
     const url = `https://esports-api.lolesports.com/persisted/gw/getEventDetails?hl=en-US&id=${matchId}`;
     const options = {
@@ -8,6 +9,7 @@ export async function fetchMatchData(matchId: string): Promise<any> {
     };
     try {
         const response = await fetch(url, options);
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const data: any = await response.json();
         return data.data.event.match;
     } catch (error) {

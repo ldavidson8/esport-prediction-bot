@@ -1,5 +1,6 @@
 import Database from 'better-sqlite3';
 import { logger } from '../utils/logger.js';
+import type { PostedMatch } from '../interfaces/leagueEvent.js';
 
 const db: Database.Database = new Database('data.db');
 
@@ -47,8 +48,11 @@ export function upsertUserPrediction(matchId: string, userId: string, prediction
     stmt.run(matchId, userId, prediction, null);
 }
 
-export function getPastMatches(twentyFourHoursAgo: number): any[] {
-    return db.prepare('SELECT * FROM posted_matches WHERE posted_at < ?').all(twentyFourHoursAgo);
+export function getPastMatches(twentyFourHoursAgo: number): PostedMatch[] {
+    const result = db
+        .prepare('SELECT * FROM posted_matches WHERE posted_at < ?')
+        .all(twentyFourHoursAgo);
+    return result as PostedMatch[];
 }
 
 export function deleteMatchById(matchId: string): void {

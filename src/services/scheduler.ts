@@ -113,10 +113,33 @@ export async function sendEventMessage(channel: TextChannel, event: CustomEvent,
     const team2EmojiId = team2Emoji.match(/:(\d+)>/)?.[1];
 
     const startTime = dayjs(event.startTime);
-    const messageContent =
-        `Upcoming match in ${timeDiff} hours: ${team1Emoji} ${team1.name} vs ${team2Emoji} ${team2.name}` +
-        `\n${event.league.name} - ${event.blockName}` +
-        `\nStarts at <t:${Math.floor(startTime.unix())}:F>`;
+    const messageContent = {
+        embeds: [
+            {
+                title: `Upcoming match in ${timeDiff} hours`,
+                description: `${team1Emoji} ${team1.name} vs ${team2Emoji} ${team2.name}`,
+                fields: [
+                    { name: 'League', value: event.league.name, inline: true },
+                    { name: 'Block', value: event.blockName, inline: true },
+                    {
+                        name: 'Start Time',
+                        value: `<t:${Math.floor(startTime.unix())}:F>`,
+                        inline: false,
+                    },
+                    ...(bestOf
+                        ? [{ name: 'Best Of', value: `Best of ${bestOf}`, inline: true }]
+                        : []),
+                ],
+                footer: {
+                    text: `Match ID: ${matchId}`,
+                    icon_url: 'https://lolesports.com/favicon.ico',
+                },
+                url: `https://lolesports.com/vod/${matchId}`,
+                color: 0x2f4ff1,
+                timestamp: new Date(event.startTime).toISOString(),
+            },
+        ],
+    };
 
     try {
         const message = await channel.send(messageContent);

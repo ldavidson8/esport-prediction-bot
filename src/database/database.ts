@@ -1,8 +1,16 @@
 import Database from 'better-sqlite3';
 import { logger } from '../utils/logger.js';
 import type { PostedMatch } from '../interfaces/leagueEvent.js';
+import fs from 'node:fs';
+import path from 'node:path';
 
-const db: Database.Database = new Database('data.db');
+const dbDirectory = path.resolve('data');
+if (!fs.existsSync(dbDirectory)) {
+    fs.mkdirSync(dbDirectory, { recursive: true });
+}
+
+const dbPath = path.join(dbDirectory, 'data.db');
+const db: Database.Database = new Database(dbPath);
 
 export function initDatabase(): void {
     db.exec(`
@@ -46,6 +54,13 @@ export function upsertUserPrediction(matchId: string, userId: string, prediction
         'INSERT OR REPLACE INTO user_predictions (match_id, user_id, prediction, is_correct) VALUES (?, ?, ?, ?)'
     );
     stmt.run(matchId, userId, prediction, null);
+}
+
+export function deleteUserPrediction(matchId: string, userId: string): void {
+    db.prepare('DELETE FROM user_predictions WHERE match_id = ? AND user_id = ?').run(
+        matchId,
+        userId
+    );
 }
 
 export function getPastMatches(twentyFourHoursAgo: number): PostedMatch[] {

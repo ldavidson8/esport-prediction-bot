@@ -7,6 +7,7 @@ import {
     type MessageActionRowComponentBuilder,
 } from 'discord.js';
 import type { Command } from '../interfaces/command.js';
+import { esportsData } from '../constants.js';
 
 export const metadata = new SlashCommandBuilder()
     .setName('schedule')
@@ -14,25 +15,17 @@ export const metadata = new SlashCommandBuilder()
 
 async function execute(interaction: CommandInteraction): Promise<void> {
     const select = new StringSelectMenuBuilder()
-        .setCustomId('esport')
+        .setCustomId('schedule')
         .setPlaceholder('Select an esport')
-        .addOptions([
-            new StringSelectMenuOptionBuilder()
-                .setLabel('League of Legends')
-                .setValue('lol')
-                .setDescription('League of Legends schedule')
-                .setEmoji('🎮'),
-            // new StringSelectMenuOptionBuilder()
-            //     .setLabel('Valorant')
-            //     .setValue('valorant')
-            //     .setDescription('Valorant schedule')
-            //     .setEmoji('🔫'),
-            // new StringSelectMenuOptionBuilder()
-            //     .setLabel('Rainbow Six Siege')
-            //     .setValue('r6')
-            //     .setDescription('Rainbow Six Siege schedule')
-            //     .setEmoji('🔫'),
-        ]);
+        .addOptions(
+            Object.entries(esportsData).map(([value, data]) =>
+                new StringSelectMenuOptionBuilder()
+                    .setLabel(data.fullName)
+                    .setValue(value)
+                    .setDescription(`${data.fullName} schedule`)
+                    .setEmoji(data.markdown)
+            )
+        );
 
     const row = new ActionRowBuilder<MessageActionRowComponentBuilder>().addComponents(select);
 

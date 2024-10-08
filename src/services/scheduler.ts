@@ -4,8 +4,8 @@ import dayjs from 'dayjs';
 import { getEmojiMarkdown } from '../utils/teams.js';
 import { logger } from '../utils/logger.js';
 import { scheduleJob } from 'node-schedule';
-import { fetchMatchData } from '../api/fetchMatchData.js';
-import { fetchScheduleData } from '../api/fetchScheduleData.js';
+import { fetchMatchData } from '../api/league/fetchMatchData.js';
+import { fetchScheduleData } from '../api/league/fetchScheduleData.js';
 import { ensurePredictionsChannel } from '../utils/channelUtils.js';
 import { determineWinner, filterUpcomingEvents, getBestOf } from '../utils/eventUtils.js';
 import {
@@ -14,6 +14,7 @@ import {
     updatePredictions,
     deleteMatchById,
     getPastMatches,
+    deleteUserPrediction,
 } from '../database/database.js';
 import type { Event as CustomEvent } from '../interfaces/leagueEvent.js';
 
@@ -83,7 +84,7 @@ function handleMessageReactionRemove(reaction: MessageReaction, user: User) {
     const messageData = messageCollectors.get(reaction.message.id);
     if (!messageData || user.bot) return;
 
-    const { userReactions, validEmojiIds } = messageData;
+    const { userReactions, validEmojiIds, event } = messageData;
 
     if (reaction.emoji.id && validEmojiIds.includes(reaction.emoji.id)) {
         const userReactionSet = userReactions.get(user.id);
@@ -91,6 +92,7 @@ function handleMessageReactionRemove(reaction: MessageReaction, user: User) {
             userReactionSet.delete(reaction.emoji.id);
             if (userReactionSet.size === 0) {
                 userReactions.delete(user.id);
+                deleteUserPrediction(event.match.id, user.id);
             }
         }
     }
@@ -144,23 +146,20 @@ export async function sendEventMessage(channel: TextChannel, event: CustomEvent,
                 description: `${team1Emoji} ${team1.name} vs ${team2Emoji} ${team2.name}`,
                 fields: [
                     { name: 'League', value: event.league.name, inline: true },
-                    { name: 'Block', value: event.blockName, inline: true },
+                    { name: 'Stage', value: event.blockName, inline: true },
                     {
                         name: 'Start Time',
                         value: `<t:${Math.floor(startTime.unix())}:F>`,
                         inline: false,
                     },
-                    ...(bestOf
-                        ? [{ name: 'Best Of', value: `Best of ${bestOf}`, inline: true }]
-                        : []),
+                    ...(bestOf ? [{ name: 'Best Of', value: `${bestOf}`, inline: true }] : []),
                 ],
-                footer: {
-                    text: `Match ID: ${matchId}`,
-                    icon_url: 'http://static.lolesports.com/leagues/1592594612171_WorldsDarkBG.png',
-                },
                 url: `https://lolesports.com/vod/${matchId}`,
                 color: 0x2f4ff1,
                 timestamp: startTime.toISOString(),
+                footer: {
+                    text: `Match ID: ${matchId}`,
+                },
             },
         ],
     };
@@ -287,7 +286,6 @@ async function scheduleProcess(client: CustomClient) {
 
 export function startScheduleProcessor(client: CustomClient) {
     scheduleJob('*/5 * * * *', () => scheduleProcess(client)); // run every 5 minutes
-
     /** Test script for running in seconds */
-    // scheduleJob('*/10 * * * * *', () => scheduleProcess(client));
+    // scheduleJob('*/30 * * * * *', () => scheduleProcess(client));
 }

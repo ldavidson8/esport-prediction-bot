@@ -32,4 +32,4 @@ COPY --from=build /app/pnpm-lock.yaml ./
 RUN npm install -g pnpm && pnpm install --prod
 
 # Command to run the application
-CMD ["node", "dist/bot.js"]
+CMD ["pnpm", "start"]

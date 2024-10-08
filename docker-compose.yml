@@ -1,11 +1,13 @@
 services:
-    esportpredictionbot:
+    bot:
         build:
             context: .
             dockerfile: Dockerfile
-        command: ['node', 'dist/bot.js']
-        restart: always
-        environment:
-            - CLIENT_ID=${CLIENT_ID}
-            - GUILD_ID=${GUILD_ID}
-            - DISCORD_TOKEN=${DISCORD_TOKEN}
+        restart: unless-stopped
+        env_file:
+            - .env
+        volumes:
+            - ./data:/data
+
+volumes:
+    data:

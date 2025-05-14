@@ -1,0 +1,19 @@
+meta {
+  name: Get Upcoming Tournaments
+  type: http
+  seq: 2
+}
+
+get {
+  url: https://api.liquipedia.net/api/v3/tournament?wiki=leagueoflegends&conditions=[[startdate::>2025-05-13 00:00:00]]&rawstreams=false&streamurls=false&order=startDate ASC
+  body: none
+  auth: inherit
+}
+
+params:query {
+  wiki: leagueoflegends
+  conditions: [[startdate::>2025-05-13 00:00:00]]
+  rawstreams: false
+  streamurls: false
+  order: startDate ASC
+}

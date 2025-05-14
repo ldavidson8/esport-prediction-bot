@@ -6,14 +6,16 @@ import path from 'node:path';
 
 const dbDirectory = path.resolve('data');
 if (!fs.existsSync(dbDirectory)) {
-    fs.mkdirSync(dbDirectory, { recursive: true });
+	fs.mkdirSync(dbDirectory, { recursive: true });
 }
 
 const dbPath = path.join(dbDirectory, 'data.db');
 const db: Database.Database = new Database(dbPath);
 
+db.pragma('journal_mode = WAL');
+
 export function initDatabase(): void {
-    db.exec(`
+	db.exec(`
     CREATE TABLE IF NOT EXISTS posted_matches (
     id TEXT PRIMARY KEY,
     posted_at INTEGER,
@@ -32,53 +34,52 @@ export function initDatabase(): void {
 }
 
 export function isMatchPosted(matchId: string): boolean {
-    const match = db.prepare('SELECT * FROM posted_matches WHERE id = ?').get(matchId);
-    return !!match;
+	const match = db.prepare('SELECT * FROM posted_matches WHERE id = ?').get(matchId);
+	return !!match;
 }
 
 export function addPostedMatch(
-    matchId: string,
-    messageId: string,
-    channelId: string,
-    guildId: string
+	matchId: string,
+	messageId: string,
+	channelId: string,
+	guildId: string,
 ): void {
-    const stmt = db.prepare(
-        'INSERT OR REPLACE INTO posted_matches (id, posted_at, message_id, channel_id, guild_id) VALUES (?, ?, ?, ?, ?)'
-    );
-    stmt.run(matchId, Date.now(), messageId, channelId, guildId);
-    logger.info(`Added match ${matchId} to posted_matches`);
+	const stmt = db.prepare(
+		'INSERT OR REPLACE INTO posted_matches (id, posted_at, message_id, channel_id, guild_id) VALUES (?, ?, ?, ?, ?)',
+	);
+	stmt.run(matchId, Date.now(), messageId, channelId, guildId);
+	logger.info(`Added match ${matchId} to posted_matches`);
 }
 
 export function upsertUserPrediction(matchId: string, userId: string, prediction: string): void {
-    const stmt = db.prepare(
-        'INSERT OR REPLACE INTO user_predictions (match_id, user_id, prediction, is_correct) VALUES (?, ?, ?, ?)'
-    );
-    stmt.run(matchId, userId, prediction, null);
+	const stmt = db.prepare(
+		'INSERT OR REPLACE INTO user_predictions (match_id, user_id, prediction, is_correct) VALUES (?, ?, ?, ?)',
+	);
+	stmt.run(matchId, userId, prediction, null);
 }
 
 export function deleteUserPrediction(matchId: string, userId: string): void {
-    db.prepare('DELETE FROM user_predictions WHERE match_id = ? AND user_id = ?').run(
-        matchId,
-        userId
-    );
+	db.prepare('DELETE FROM user_predictions WHERE match_id = ? AND user_id = ?').run(
+		matchId,
+		userId,
+	);
 }
 
-export function getPastMatches(twentyFourHoursAgo: number): PostedMatch[] {
-    const result = db
-        .prepare('SELECT * FROM posted_matches WHERE posted_at < ?')
-        .all(twentyFourHoursAgo);
-    return result as PostedMatch[];
+export function getPastMatches(): PostedMatch[] {
+	const currentTime = Date.now();
+	const result = db.prepare('SELECT * FROM posted_matches WHERE posted_at < ?').all(currentTime);
+	return result as PostedMatch[];
 }
 
 export function deleteMatchById(matchId: string): void {
-    db.prepare('DELETE FROM posted_matches WHERE id = ?').run(matchId);
+	db.prepare('DELETE FROM posted_matches WHERE id = ?').run(matchId);
 }
 
 export function updatePredictions(matchId: string, winner: string): void {
-    const stmt = db.prepare(
-        'UPDATE user_predictions SET is_correct = CASE WHEN prediction = ? THEN 1 ELSE 0 END WHERE match_id = ?'
-    );
-    stmt.run(winner, matchId);
+	const stmt = db.prepare(
+		'UPDATE user_predictions SET is_correct = CASE WHEN prediction = ? THEN 1 ELSE 0 END WHERE match_id = ?',
+	);
+	stmt.run(winner, matchId);
 }
 
 export default db;

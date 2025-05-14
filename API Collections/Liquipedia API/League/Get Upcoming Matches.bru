@@ -1,0 +1,20 @@
+meta {
+  name: Get Upcoming Matches
+  type: http
+  seq: 1
+}
+
+get {
+  url: https://api.liquipedia.net/api/v3/match?wiki=leagueoflegends&conditions=[[date::>2025-05-13 00:00:00]]&rawstreams=false&streamurls=false
+  body: none
+  auth: inherit
+}
+
+params:query {
+  wiki: leagueoflegends
+  conditions: [[date::>2025-05-13 00:00:00]]
+  rawstreams: false
+  streamurls: false
+  ~order: date ASC
+  ~limit: 1000
+}

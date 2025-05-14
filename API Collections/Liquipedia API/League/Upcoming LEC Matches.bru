@@ -1,0 +1,19 @@
+meta {
+  name: Upcoming LEC Matches
+  type: http
+  seq: 4
+}
+
+get {
+  url: https://api.liquipedia.net/api/v3/match?wiki=leagueoflegends&conditions=[[series::LEC]] AND [[date::>2025-01-01 00:00:00]]&rawstreams=false&streamurls=false&order=date ASC
+  body: none
+  auth: inherit
+}
+
+params:query {
+  wiki: leagueoflegends
+  conditions: [[series::LEC]] AND [[date::>2025-01-01 00:00:00]]
+  rawstreams: false
+  streamurls: false
+  order: date ASC
+}

@@ -13,9 +13,7 @@ import { env } from './env.js';
 import type { Command } from './interfaces/command.js';
 import { logger } from './utils/logger.js';
 
-const commands:
-    | RESTPostAPIApplicationCommandsJSONBody[]
-    | RESTPostAPIApplicationGuildCommandsJSONBody[] = [];
+const commands: (RESTPostAPIApplicationCommandsJSONBody | RESTPostAPIApplicationGuildCommandsJSONBody)[] = [];
 const commandFolderPath = fileURLToPath(new URL('commands', import.meta.url));
 async function loadCommands(commandFolderPath: PathLike) {
     const commandFiles = readdirSync(commandFolderPath).filter(file => file.endsWith('.js'));

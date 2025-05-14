@@ -1,5 +1,5 @@
 # Stage 1: Build
-FROM node:20-slim AS build
+FROM node:22-slim AS build
 
 # Set working directory
 WORKDIR /app
@@ -17,7 +17,7 @@ COPY . .
 RUN pnpm run build
 
 # Stage 2: Production
-FROM node:20-slim AS production
+FROM node:22-slim AS production
 
 # Set working directory
 WORKDIR /app

@@ -281,12 +281,308 @@ const LTASouthTeams: Team[] = [
   },
 ];
 
+const LCPTeams: Team[] = [
+  {
+    shortcode: "CFO",
+    name: "CTBC Flying Oyster",
+    emojiMarkdown: "<:CFO:1372336707902373888>",
+  },
+  {
+    shortcode: "SHG",
+    name: "SoftBank HAWKS gaming",
+    emojiMarkdown: "<:SHG:1372336721521283182>",
+  },
+  {
+    shortcode: "GAM",
+    name: "GAM Esports",
+    emojiMarkdown: "<:GAM:1372336730975502347>",
+  },
+  {
+    shortcode: "TLN",
+    name: "TALON",
+    emojiMarkdown: "<:TLN:1372336741045764147>",
+  },
+  {
+    shortcode: "CHF",
+    name: "Chiefs Esports Club",
+    emojiMarkdown: "<:CHF:1372336752018067577>",
+  },
+  {
+    shortcode: "DFM",
+    name: "DetonatioN FocusMe",
+    emojiMarkdown: "<:DFM:1372336761333874708>",
+  },
+  {
+    shortcode: "TSW",
+    name: "Secret Whales",
+    emojiMarkdown: "<:TSW:1372336772561895424>",
+  },
+  {
+    shortcode: "VKE",
+    name: "Vikings Esports",
+    emojiMarkdown: "<:VKE:1372336785023041536>",
+  },
+];
+
+const VCT_AMERICAS: Team[] = [
+  {
+    shortcode: "G2",
+    name: "G2 Esports",
+    emojiMarkdown: "<:G2:1289420105675046963>",
+  },
+  {
+    shortcode: "SEN",
+    name: "Sentinels",
+    emojiMarkdown: "<:SEN:1372357027032207532>",
+  },
+  {
+    shortcode: "MIBR",
+    name: "MIBR",
+    emojiMarkdown: "<:MIBR:1372357049853153330>",
+  },
+  {
+    shortcode: "KRU",
+    name: "KRÜ Esports",
+    emojiMarkdown: "<:KRU:1372357065795702845>",
+  },
+  {
+    shortcode: "LEV",
+    name: "Leviatán",
+    emojiMarkdown: "<:LEV:1372328788553109565>",
+  },
+  {
+    shortcode: "LOUD",
+    name: "LOUD",
+    emojiMarkdown: "<:LLL:1372328644352938085>",
+  },
+  {
+    shortcode: "EG",
+    name: "Evil Geniuses",
+    emojiMarkdown: "<:EG:1372357114370064395>",
+  },
+  {
+    shortcode: "NRG",
+    name: "NRG",
+    emojiMarkdown: "<:NRG:1372357127267422329>",
+  },
+  {
+    shortcode: "FUR",
+    name: "FURIA",
+    emojiMarkdown: "<:FUR:1372328618621141032>",
+  },
+  {
+    shortcode: "C9",
+    name: "Cloud9",
+    emojiMarkdown: "<:C9:1372322596841979934>",
+  },
+  {
+    shortcode: "100T",
+    name: "100 Thieves",
+    emojiMarkdown: "<:100:1372322893140332645>",
+  },
+  {
+    shortcode: "2G",
+    name: "2GAME Esports",
+    emojiMarkdown: "<:2G:1372357171253219470>",
+  },
+];
+
+const VCT_CN: Team[] = [
+  {
+    shortcode: "EDG",
+    name: "Edward Gaming",
+    emojiMarkdown: "<:EDG:1372315154959831202>",
+  },
+  {
+    shortcode: "TE",
+    name: "Trace Esports",
+    emojiMarkdown: "<:TE:1372357191700316231>",
+  },
+  {
+    shortcode: "BLG",
+    name: "Bilibili Gaming",
+    emojiMarkdown: "<:BLG:1372315140351066164>",
+  },
+  {
+    shortcode: "DRG",
+    name: "Dragon Ranger Gaming",
+    emojiMarkdown: "<:DRG:1372357213980459008>",
+  },
+  {
+    shortcode: "FPX",
+    name: "FunPlus Phoenix",
+    emojiMarkdown: "<:FPX:1372315166984634438>",
+  },
+  {
+    shortcode: "XLG",
+    name: "XLG Esports",
+    emojiMarkdown: "<:XLG:1372357241759469668>",
+  },
+  {
+    shortcode: "NV",
+    name: "Nova Esports",
+    emojiMarkdown: "<:NV:1372357260310872154>",
+  },
+  {
+    shortcode: "JDG",
+    name: "JD Gaming",
+    emojiMarkdown: "<:JDG:1372315187549438003>",
+  },
+  {
+    shortcode: "WOL",
+    name: "Wolves Esports",
+    emojiMarkdown: "<:WOL:1372357282905718825>",
+  },
+  {
+    shortcode: "TYL",
+    name: "TYLOO",
+    emojiMarkdown: "<:TYL:1372357292569399397>",
+  },
+  {
+    shortcode: "TEC",
+    name: "Titan Esports Club",
+    emojiMarkdown: "<:TEC:1372357314413330533>",
+  },
+  {
+    shortcode: "AG",
+    name: "All Gamers",
+    emojiMarkdown: "<:AG:1372357324915605596>",
+  },
+];
+
+const VCT_EMEA: Team[] = [
+  {
+    shortcode: "VIT",
+    name: "Team Vitality",
+    emojiMarkdown: "<:VIT:1372287759615524885>",
+  },
+  {
+    shortcode: "TL",
+    name: "Team Liquid",
+    emojiMarkdown: "<:TL:1372322742363492432>",
+  },
+  {
+    shortcode: "TH",
+    name: "Team Heretics",
+    emojiMarkdown: "<:TH:1372287599762341889>",
+  },
+  {
+    shortcode: "FUT",
+    name: "FUT Esports",
+    emojiMarkdown: "<:FUT:1372357365671792691>",
+  },
+  {
+    shortcode: "FNC",
+    name: "Fnatic",
+    emojiMarkdown: "<:FNC:1289420093792587796>",
+  },
+  {
+    shortcode: "BBL",
+    name: "BBL Esports",
+    emojiMarkdown: "<:BBL:1372357487017332747>",
+  },
+  {
+    shortcode: "M8",
+    name: "Gentle Mates",
+    emojiMarkdown: "<:M8:1372357506344419458>",
+  },
+  {
+    shortcode: "GX",
+    name: "GIANTX",
+    emojiMarkdown: "<:GX:1372287477968277534>",
+  },
+  {
+    shortcode: "KOI",
+    name: "KOI",
+    emojiMarkdown: "<:KOI:1372287505642295390>",
+  },
+  {
+    shortcode: "NAVI",
+    name: "Natus Vincere",
+    emojiMarkdown: "<:NAVI:1372357674074898532>",
+  },
+  {
+    shortcode: "KC",
+    name: "Karmine Corp",
+    emojiMarkdown: "<:KC:1372287491947630603>",
+  },
+  {
+    shortcode: "APK",
+    name: "Apeks",
+    emojiMarkdown: "<:APK:1372357706433826846>",
+  },
+];
+
+const VCT_PACIFIC: Team[] = [
+  {
+    shortcode: "DRX",
+    name: "DRX",
+    emojiMarkdown: "<:DRX:1372324712197263561>",
+  },
+  { shortcode: "T1", name: "T1", emojiMarkdown: "<:T1:1372324602155634838>" },
+  {
+    shortcode: "GEN",
+    name: "Gen.G Esports",
+    emojiMarkdown: "<:GEN:1372324627942215831>",
+  },
+  {
+    shortcode: "TLN",
+    name: "Talon Esports",
+    emojiMarkdown: "<:TLN:1372336741045764147>",
+  },
+  {
+    shortcode: "NS",
+    name: "Nongshim RedForce",
+    emojiMarkdown: "<:NS:1372324695168385235>",
+  },
+  {
+    shortcode: "DFM",
+    name: "DetonatioN FocusMe",
+    emojiMarkdown: "<:DFM:1372336761333874708>",
+  },
+  {
+    shortcode: "RRQ",
+    name: "Rex Regum Qeon",
+    emojiMarkdown: "<:RRQ:1372357775430123662>",
+  },
+  {
+    shortcode: "PRX",
+    name: "Paper Rex",
+    emojiMarkdown: "<:PRX:1372357791939035247>",
+  },
+  {
+    shortcode: "BME",
+    name: "BOOM Esports",
+    emojiMarkdown: "<:BME:1372357804014436352>",
+  },
+  {
+    shortcode: "TS",
+    name: "Team Secret",
+    emojiMarkdown: "<:TSW:1372336772561895424>",
+  },
+  {
+    shortcode: "GE",
+    name: "Global Esports",
+    emojiMarkdown: "<:GE:1372357844753449000>",
+  },
+  {
+    shortcode: "ZETA",
+    name: "ZETA DIVISION",
+    emojiMarkdown: "<:ZETA:1372357854618583110>",
+  },
+];
+
 export const teams: Team[] = [
   ...LCKTeams,
   ...LECTeams,
   ...LPLTeams,
   ...LTANorthTeams,
   ...LTASouthTeams,
+  ...LCPTeams,
+  ...VCT_AMERICAS,
+  ...VCT_CN,
+  ...VCT_EMEA,
+  ...VCT_PACIFIC,
 ];
 
 export function getTeamByShortcode(shortcode: string): Team | undefined {

@@ -1,17 +1,17 @@
 meta {
   name: Series
   type: http
-  seq: 8
+  seq: 1
 }
 
 get {
-  url: https://api.liquipedia.net/api/v3/match?wiki=leagueoflegends&conditions=[[liquipediatier::1]] AND [[finished::0]]&rawstreams=false&streamurls=false&order=date ASC&limit=1000
+  url: https://api.liquipedia.net/api/v3/match?wiki=valorant&conditions=[[liquipediatier::1]] AND [[finished::0]]&rawstreams=false&streamurls=false&order=date ASC&limit=1000
   body: none
   auth: inherit
 }
 
 params:query {
-  wiki: leagueoflegends
+  wiki: valorant
   conditions: [[liquipediatier::1]] AND [[finished::0]]
   rawstreams: false
   streamurls: false

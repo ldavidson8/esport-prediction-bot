@@ -1,0 +1,20 @@
+meta {
+  name: Upcoming LCP Matches
+  type: http
+  seq: 7
+}
+
+get {
+  url: https://api.liquipedia.net/api/v3/match?wiki=leagueoflegends&conditions=[[series::LoL Championship Pacific]] AND [[date::>2025-01-01 00:00:00]]&rawstreams=false&streamurls=false&order=date ASC&limit=1000
+  body: none
+  auth: inherit
+}
+
+params:query {
+  wiki: leagueoflegends
+  conditions: [[series::LoL Championship Pacific]] AND [[date::>2025-01-01 00:00:00]]
+  rawstreams: false
+  streamurls: false
+  order: date ASC
+  limit: 1000
+}

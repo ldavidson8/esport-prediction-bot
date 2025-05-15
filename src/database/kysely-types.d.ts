@@ -3,22 +3,38 @@
  * Please do not edit it manually.
  */
 
-export interface PostedMatches {
-  channelId: string | null;
-  guildId: string | null;
-  id: string | null;
-  messageId: string | null;
-  postedAt: number | null;
+import type { ColumnType } from "kysely";
+
+export type Generated<T> = T extends ColumnType<infer S, infer I, infer U>
+  ? ColumnType<S, I | undefined, U>
+  : ColumnType<T, T | undefined, T>;
+
+export interface Esports {
+  createdAt: Generated<string>;
+  id: Generated<number | null>;
+  name: string;
+  shortName: string;
 }
 
-export interface UserPredictions {
-  isCorrect: number | null;
-  matchId: string | null;
-  prediction: string | null;
-  userId: string | null;
+export interface GuildEsportsSettings {
+  createdAt: Generated<string>;
+  esportsId: number;
+  guildId: number;
+  id: Generated<number | null>;
+  isenabled: Generated<number>;
+  updatedAt: Generated<string>;
+}
+
+export interface Guilds {
+  createdAt: Generated<string>;
+  guildId: string;
+  id: Generated<number | null>;
+  predictionChannelId: string | null;
+  updatedAt: Generated<string>;
 }
 
 export interface DB {
-  postedMatches: PostedMatches;
-  userPredictions: UserPredictions;
+  esports: Esports;
+  guildEsportsSettings: GuildEsportsSettings;
+  guilds: Guilds;
 }

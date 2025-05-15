@@ -27,8 +27,12 @@ export async function up(db: Kysely<any>): Promise<void> {
   await db.schema
     .createTable("guild_esports_settings")
     .addColumn("id", "integer", (col) => col.primaryKey())
-    .addColumn("guild_id", "integer", (col) => col.notNull())
-    .addColumn("esports_id", "integer", (col) => col.notNull())
+    .addColumn("guild_id", "integer", (col) =>
+      col.references("guilds.id").onDelete("cascade").notNull()
+    )
+    .addColumn("esports_id", "integer", (col) =>
+      col.references("esports.id").onDelete("cascade").notNull()
+    )
     .addColumn("isenabled", "boolean", (col) => col.defaultTo(false).notNull())
     .addColumn("created_at", "timestamp", (col) =>
       col.defaultTo(sql`CURRENT_TIMESTAMP`).notNull()
@@ -36,6 +40,7 @@ export async function up(db: Kysely<any>): Promise<void> {
     .addColumn("updated_at", "timestamp", (col) =>
       col.defaultTo(sql`CURRENT_TIMESTAMP`).notNull()
     )
+    .addUniqueConstraint("unique_guild_esports", ["guild_id", "esports_id"])
     .execute();
 }
 

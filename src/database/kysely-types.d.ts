@@ -18,8 +18,8 @@ export interface Esports {
 
 export interface GuildEsportsSettings {
   createdAt: Generated<string>;
-  esportsId: number;
-  guildId: number;
+  esportsId: string;
+  guildId: string;
   id: Generated<number | null>;
   isenabled: Generated<number>;
   updatedAt: Generated<string>;

@@ -1,17 +1,17 @@
-import { format } from "date-fns";
+import { format } from 'date-fns';
 
 export function yearMonthDay(date: Date): string {
-  return format(date, "yyyy");
+	return format(date, 'yyyy');
 }
 export function yearMonth(date: Date): string {
-  return format(date, "yyyy-MM");
+	return format(date, 'yyyy-MM');
 }
 export function yearMonthDayHour(date: Date): string {
-  return format(date, "yyyy-MM-dd HH");
+	return format(date, 'yyyy-MM-dd HH');
 }
 export function yearMonthDayHourMinute(date: Date): string {
-  return format(date, "yyyy-MM-dd HH:mm");
+	return format(date, 'yyyy-MM-dd HH:mm');
 }
 export function yearMonthDayHourMinuteSecond(date: Date): string {
-  return format(date, "yyyy-MM-dd HH:mm:ss");
+	return format(date, 'yyyy-MM-dd HH:mm:ss');
 }

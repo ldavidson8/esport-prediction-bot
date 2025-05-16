@@ -1,5 +1,5 @@
-import { CommandInteraction, SlashCommandBuilder } from 'discord.js';
-import type { Command } from '../interfaces/command.js';
+import { CommandInteraction, MessageFlags, SlashCommandBuilder } from 'discord.js';
+import type { Command } from '../../interfaces/command.js';
 import { RateLimiter } from 'discord.js-rate-limiter';
 
 export const metadata = new SlashCommandBuilder()
@@ -13,18 +13,17 @@ async function execute(interaction: CommandInteraction): Promise<void> {
 	if (limited) {
 		await interaction.reply({
 			content: 'You are being rate limited!',
-			ephemeral: true,
+			flags: MessageFlags.Ephemeral,
 		});
 		return;
 	}
-	const sent = await interaction.reply({
+	await interaction.reply({
 		content: 'Pinging...',
-		fetchReply: true,
 	});
 	await interaction.editReply(
-		`🏓 Pong! Latency is ${sent.createdTimestamp - interaction.createdTimestamp}ms. API Latency is ${Math.round(
-			interaction.client.ws.ping,
-		)}ms`,
+		`🏓 Pong! Latency is ${
+			Date.now() - interaction.createdTimestamp
+		}ms. API Latency is ${Math.round(interaction.client.ws.ping)}ms`,
 	);
 }
 

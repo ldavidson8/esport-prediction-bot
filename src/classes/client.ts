@@ -34,19 +34,26 @@ export class CustomClient extends Client {
 
 	private async loadCommands() {
 		const commandFolderPath = fileURLToPath(new URL('../commands', import.meta.url));
-		const commandFiles = readdirSync(commandFolderPath).filter((file) => file.endsWith('.js'));
 
-		for (const file of commandFiles) {
-			const filePath = join(commandFolderPath, file);
-			try {
-				const commandModule = await import(filePath);
-				const command = commandModule.default as Command;
-				this.commands.set(command.data.name, command);
-				logger.info(`Command ${command.data.name} loaded`);
-			} catch (error) {
-				logger.error(`Failed to load command ${file}:`, error);
+		const loadDir = async (dir: string) => {
+			for (const entry of readdirSync(dir, { withFileTypes: true })) {
+				const fullPath = join(dir, entry.name);
+				if (entry.isDirectory()) {
+					await loadDir(fullPath);
+				} else if (entry.isFile() && entry.name.endsWith('.js')) {
+					try {
+						const commandModule = await import(fullPath);
+						const command = commandModule.default as Command;
+						this.commands.set(command.data.name, command);
+						logger.info(`Command ${command.data.name} loaded`);
+					} catch (error) {
+						logger.error(`Failed to load command ${entry.name}:`, error);
+					}
+				}
 			}
-		}
+		};
+
+		await loadDir(commandFolderPath);
 	}
 
 	private async loadEvents() {

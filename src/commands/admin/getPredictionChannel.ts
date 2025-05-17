@@ -11,7 +11,7 @@ import type { Command } from '../../interfaces/command.js';
 import { logger } from '../../utils/logger.js';
 
 export const metadata = new SlashCommandBuilder()
-	.setName('getpredictionchannel')
+	.setName('get-prediction-channel')
 	.setDescription('Gets the currently set prediction channel for this guild.')
 	.setDefaultMemberPermissions(PermissionFlagsBits.ManageGuild)
 	.setContexts(InteractionContextType.Guild);

@@ -18,7 +18,7 @@ import { logger } from '../../utils/logger.js';
 import { RateLimiter } from 'discord.js-rate-limiter';
 
 export const metadata = new SlashCommandBuilder()
-	.setName('setpredictionchannel')
+	.setName('set-prediction-channel')
 	.setDescription('Sets the prediction channel for the current guild.')
 	.setDefaultMemberPermissions(PermissionFlagsBits.ManageGuild)
 	.setContexts(InteractionContextType.Guild);

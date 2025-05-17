@@ -1,18 +1,18 @@
 meta {
   name: Upcoming MSI Matches
   type: http
-  seq: 8
+  seq: 10
 }
 
 get {
-  url: https://api.liquipedia.net/api/v3/match?wiki=leagueoflegends&conditions=[[series::Mid-Season Invitational]] AND [[date::>2025-01-01 00:00:00]]&rawstreams=false&streamurls=false&order=date ASC&limit=1000
+  url: https://api.liquipedia.net/api/v3/match?wiki=leagueoflegends&conditions=[[series::Mid-Season Invitational]] AND [[date::>2025-05-13 00:00:00]]&rawstreams=false&streamurls=false&order=date ASC&limit=1000
   body: none
   auth: inherit
 }
 
 params:query {
   wiki: leagueoflegends
-  conditions: [[series::Mid-Season Invitational]] AND [[date::>2025-01-01 00:00:00]]
+  conditions: [[series::Mid-Season Invitational]] AND [[date::>2025-05-13 00:00:00]]
   rawstreams: false
   streamurls: false
   order: date ASC

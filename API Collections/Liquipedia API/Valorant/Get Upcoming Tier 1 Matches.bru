@@ -1,0 +1,20 @@
+meta {
+  name: Get Upcoming Tier 1 Matches
+  type: http
+  seq: 3
+}
+
+get {
+  url: https://api.liquipedia.net/api/v3/match?wiki=valorant&conditions=[[date::>2025-05-16 00:00:00]] AND [[liquipediatier::1]] AND ([[liquipediatiertype::]] OR [[liquipediatiertype::General]] OR [[liquipediatiertype::Qualifier]])&rawstreams=false&streamurls=false&order=date ASC&limit=1000
+  body: none
+  auth: inherit
+}
+
+params:query {
+  wiki: valorant
+  conditions: [[date::>2025-05-16 00:00:00]] AND [[liquipediatier::1]] AND ([[liquipediatiertype::]] OR [[liquipediatiertype::General]] OR [[liquipediatiertype::Qualifier]])
+  rawstreams: false
+  streamurls: false
+  order: date ASC
+  limit: 1000
+}

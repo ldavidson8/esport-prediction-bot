@@ -5,7 +5,7 @@ meta {
 }
 
 get {
-  url: https://api.liquipedia.net/api/v3/match?wiki=valorant&conditions=[[series::VALORANT Champions Tour]] AND [[date::>2025-05-15 00:00:00]]&rawstreams=false&streamurls=false&order=date ASC&limit=1
+  url: https://api.liquipedia.net/api/v3/match?wiki=valorant&conditions=[[series::VALORANT Champions Tour]] AND [[date::>2025-05-15 00:00:00]]&rawstreams=false&streamurls=false&order=date ASC&limit=1000
   body: none
   auth: inherit
 }
@@ -16,5 +16,5 @@ params:query {
   rawstreams: false
   streamurls: false
   order: date ASC
-  limit: 1
+  limit: 1000
 }

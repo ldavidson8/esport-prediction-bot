@@ -1,18 +1,18 @@
 meta {
   name: Upcoming LTA Matches
   type: http
-  seq: 6
+  seq: 8
 }
 
 get {
-  url: https://api.liquipedia.net/api/v3/match?wiki=leagueoflegends&conditions=[[series::LoL Championship of The Americas]] AND [[date::>2025-01-01 00:00:00]]&rawstreams=false&streamurls=false&order=date ASC&limit=1000
+  url: https://api.liquipedia.net/api/v3/match?wiki=leagueoflegends&conditions=[[series::LoL Championship of The Americas]] AND [[date::>2025-05-13 00:00:00]]&rawstreams=false&streamurls=false&order=date ASC&limit=1000
   body: none
   auth: inherit
 }
 
 params:query {
   wiki: leagueoflegends
-  conditions: [[series::LoL Championship of The Americas]] AND [[date::>2025-01-01 00:00:00]]
+  conditions: [[series::LoL Championship of The Americas]] AND [[date::>2025-05-13 00:00:00]]
   rawstreams: false
   streamurls: false
   order: date ASC

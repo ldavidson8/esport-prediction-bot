@@ -25,7 +25,7 @@ const $fetch = createFetch({
 	}),
 });
 
-export async function getUpcomingVCTMatches(limit: number) {
+export async function getUpcomingVCTMatches(limit: number, endDate?: Date) {
 	const { data, error } = await $fetch('/match', {
 		headers: {
 			Authorization: `Apikey ${env.LIQUIPEDIA_TOKEN}`,
@@ -34,7 +34,7 @@ export async function getUpcomingVCTMatches(limit: number) {
 			wiki: 'valorant',
 			conditions: [
 				`[[series::VALORANT Champions Tour]] AND [[date::>${yearMonthDayHourMinuteSecond(
-					new Date(),
+					endDate || new Date(),
 				)}]]`,
 			],
 			rawstreams: false,

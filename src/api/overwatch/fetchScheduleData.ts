@@ -25,37 +25,20 @@ const $fetch = createFetch({
 	}),
 });
 
-type League = {
-	[key: string]: string;
-};
-
-const leagues: League = {
-	LCK: 'LoL Champions Korea',
-	LEC: 'LEC',
-	LPL: 'LoL Pro League',
-	LTA: 'LoL Championship of The Americas',
-	LCP: 'LoL Championship Pacific',
-	MSI: 'Mid-Season Invitational',
-	Worlds: 'World Championships',
-};
-
-type LeagueKey = keyof typeof leagues;
-
-export async function getUpcomingMatches(league: LeagueKey, limit: number, endDate?: Date) {
-	const series = leagues[league];
+export async function getUpcomingOWCSMatches(limit: number, endDate?: Date) {
 	const { data, error } = await $fetch('/match', {
 		headers: {
 			Authorization: `Apikey ${env.LIQUIPEDIA_TOKEN}`,
 		},
 		query: {
-			wiki: 'leagueoflegends',
+			wiki: 'overwatch',
 			conditions: [
-				`[[series::${series}]] AND [[date::>${yearMonthDayHourMinuteSecond(endDate || new Date())}]]`,
+				`[[series::Overwatch Champions Series]] AND [[date::>${yearMonthDayHourMinuteSecond(endDate || new Date())}]]`,
 			],
 			rawstreams: false,
 			streamurls: false,
 			order: 'date ASC',
-			limit,
+			limit: limit,
 		},
 	});
 

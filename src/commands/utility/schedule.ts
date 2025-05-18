@@ -15,9 +15,11 @@ import { addDays, addHours, endOfDay } from 'date-fns';
 import { logger } from '../../utils/logger.js';
 import { getEmojiMarkdown } from '../../utils/teams.js';
 import { purpleAccentColor } from '../../constants.js';
+import { getUpcomingOWCSMatches } from '../../api/overwatch/fetchScheduleData.js';
 
 const esportChoices = [
 	{ name: 'Valorant (VCT)', value: 'VCT' },
+	{ name: 'Overwatch (OWCS)', value: 'OWCS' },
 	{ name: 'League of Legends (LCK)', value: 'LCK' },
 	{ name: 'League of Legends (LPL)', value: 'LPL' },
 	{ name: 'League of Legends (LEC)', value: 'LEC' },
@@ -98,6 +100,8 @@ async function execute(interaction: ChatInputCommandInteraction): Promise<void> 
 
 		if (esport === 'VCT') {
 			scheduleData = await getUpcomingVCTMatches(limit, endDate);
+		} else if (esport === 'OWCS') {
+			scheduleData = await getUpcomingOWCSMatches(limit, endDate);
 		} else {
 			scheduleData = await getMatchesByLeague(esport as any, limit, endDate);
 		}
@@ -121,19 +125,27 @@ async function execute(interaction: ChatInputCommandInteraction): Promise<void> 
 					const team2Emoji = getEmojiMarkdown(team2Identifier) || '';
 
 					let relativeTime = 'Unknown time';
-					if (match.date) {
-						try {
-							const matchDate = new Date(match.date);
-							if (!isNaN(matchDate.getTime())) {
-								relativeTime = time(matchDate, TimestampStyles.RelativeTime);
-							} else {
-								logger.warn(`Invalid date format for match: ${match.date}`);
-								relativeTime = `(Date: ${match.date})`;
-							}
-						} catch (e) {
-							logger.warn(`Error parsing date for match: ${match.date}`, e);
-							relativeTime = `(Date: ${match.date})`;
+					let matchDate: Date | undefined;
+
+					// Prefer extradata.timestamp if available, otherwise fallback to match.date
+					if (match.extradata?.timestamp) {
+						const unixTimestamp = Number(match.extradata.timestamp);
+						if (!isNaN(unixTimestamp)) {
+							matchDate = new Date(unixTimestamp * 1000);
 						}
+					}
+					if (!matchDate && match.date) {
+						const parsedDate = new Date(match.date);
+						if (!isNaN(parsedDate.getTime())) {
+							matchDate = parsedDate;
+						}
+					}
+
+					if (matchDate) {
+						relativeTime = time(matchDate, TimestampStyles.RelativeTime);
+					} else if (match.date) {
+						logger.warn(`Invalid date format for match: ${match.date}`);
+						relativeTime = `(Date: ${match.date})`;
 					}
 
 					matchDisplays.push(

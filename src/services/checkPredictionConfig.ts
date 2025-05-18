@@ -1,4 +1,11 @@
-import { Guild, Client, userMention } from 'discord.js';
+import {
+	Guild,
+	Client,
+	userMention,
+	MessageFlags,
+	ContainerBuilder,
+	TextDisplayBuilder,
+} from 'discord.js';
 import { getDb } from '../database/database.js';
 
 export async function checkPredictionConfig(guild: Guild, client: Client) {
@@ -45,14 +52,15 @@ export async function checkPredictionConfig(guild: Guild, client: Client) {
 
 			// If we found a suitable channel, send the message there
 			if (channel && channel.isTextBased()) {
-				// await channel.send(
-				//   `${userMention(
-				//     owner.id
-				//   )}, your server doesn't have a prediction channel set up yet. Please run \`/setpredictionchannel\` to select one.`
-				// );
-				await channel.send(
-					"your server doesn't have a prediction channel set up yet. Please run `/setpredictionchannel` to select one.",
+				const container = new ContainerBuilder().addTextDisplayComponents(
+					new TextDisplayBuilder().setContent(
+						`${userMention(owner.id)}, your server doesn't have a prediction channel set up yet. Please run \`/setpredictionchannel\` to select one.`,
+					),
 				);
+				await channel.send({
+					flags: MessageFlags.IsComponentsV2,
+					components: [container],
+				});
 			} else {
 				// Fallback: Send to the first text channel we can find
 				const firstTextChannel = guildObj.channels.cache.find(
@@ -60,11 +68,24 @@ export async function checkPredictionConfig(guild: Guild, client: Client) {
 				);
 
 				if (firstTextChannel && firstTextChannel.isTextBased()) {
-					await firstTextChannel.send(
-						`${userMention(
-							owner.id,
-						)}, your server doesn't have a prediction channel set up yet. Please run \`/setpredictionchannel\` to select one.`,
+					const container = new ContainerBuilder().addTextDisplayComponents(
+						new TextDisplayBuilder().setContent(
+							`${userMention(owner.id)}, your server doesn't have a prediction channel set up yet. Please run \`/setpredictionchannel\` to select one.`,
+						),
 					);
+					await firstTextChannel.send({
+						flags: MessageFlags.IsComponentsV2,
+						components: [container],
+					});
+				} else {
+					// Final fallback: DM the server owner
+					try {
+						await owner.send(
+							`Your server "${guildObj.name}" doesn't have a prediction channel set up yet. Please run \`/setpredictionchannel\` in your server to select one.`,
+						);
+					} catch (dmError) {
+						console.error('Failed to DM the server owner:', dmError);
+					}
 				}
 			}
 		} catch (error) {

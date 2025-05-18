@@ -14,10 +14,7 @@ import { getMatchesByLeague } from '../../api/league/fetchScheduleData.js';
 import { addDays, addHours, endOfDay } from 'date-fns';
 import { logger } from '../../utils/logger.js';
 import { getEmojiMarkdown } from '../../utils/teams.js';
-import { RateLimiter } from 'discord.js-rate-limiter';
 import { purpleAccentColor } from '../../constants.js';
-
-const rateLimiter = new RateLimiter(1, 10000);
 
 const esportChoices = [
 	{ name: 'Valorant (VCT)', value: 'VCT' },
@@ -65,14 +62,6 @@ export const metadata = new SlashCommandBuilder()
 	);
 
 async function execute(interaction: ChatInputCommandInteraction): Promise<void> {
-	const limited = rateLimiter.take(interaction.user.id);
-	if (limited) {
-		await interaction.reply({
-			content: 'You are being rate limited!',
-			flags: MessageFlags.Ephemeral,
-		});
-		return;
-	}
 	const esport = interaction.options.getString('esport', true);
 	const timeframe = interaction.options.getString('timeframe', true);
 	const limit = interaction.options.getInteger('limit') ?? 10;

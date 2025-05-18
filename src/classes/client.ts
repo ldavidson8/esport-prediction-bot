@@ -9,6 +9,9 @@ import { logger } from '../utils/logger.js';
 
 export class CustomClient extends Client {
 	commands: Collection<string, Command>;
+	// Outer Collection: Maps command name (string) to Inner Collection
+	// Inner Collection: Maps user ID (string) to cooldown expiration timestamp (number - milliseconds)
+	cooldowns: Collection<string, Collection<string, number>>;
 
 	constructor() {
 		super({
@@ -24,6 +27,7 @@ export class CustomClient extends Client {
 			},
 		});
 		this.commands = new Collection<string, Command>();
+		this.cooldowns = new Collection<string, Collection<string, number>>();
 	}
 
 	start() {

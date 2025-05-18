@@ -15,7 +15,6 @@ import {
 import { SlashCommandBuilder } from 'discord.js';
 import type { Command } from '../../interfaces/command.js';
 import { logger } from '../../utils/logger.js';
-import { RateLimiter } from 'discord.js-rate-limiter';
 
 export const metadata = new SlashCommandBuilder()
 	.setName('set-prediction-channel')
@@ -23,21 +22,10 @@ export const metadata = new SlashCommandBuilder()
 	.setDefaultMemberPermissions(PermissionFlagsBits.ManageGuild)
 	.setContexts(InteractionContextType.Guild);
 
-const rateLimiter = new RateLimiter(1, 5000);
-
 async function execute(interaction: CommandInteraction): Promise<void> {
 	if (!interaction.guild) {
 		await interaction.reply({
 			content: 'This command can only be used in a server.',
-			flags: MessageFlags.Ephemeral,
-		});
-		return;
-	}
-
-	const limited = rateLimiter.take(interaction.user.id);
-	if (limited) {
-		await interaction.reply({
-			content: 'You are being rate limited!',
 			flags: MessageFlags.Ephemeral,
 		});
 		return;
@@ -155,7 +143,7 @@ async function execute(interaction: CommandInteraction): Promise<void> {
 const setPredictionChannelCommand: Command = {
 	data: metadata.toJSON(),
 	opt: {
-		cooldown: 10,
+		cooldown: 30,
 		userPermissions: ['ManageGuild'],
 		botPermissions: ['SendMessages'],
 		category: 'Admin',

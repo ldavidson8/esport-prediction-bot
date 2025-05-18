@@ -7,7 +7,6 @@ import {
 	InteractionContextType,
 } from 'discord.js';
 import type { Command } from '../../interfaces/command.js';
-import { RateLimiter } from 'discord.js-rate-limiter';
 import type { CustomClient } from '../../classes/client.js';
 
 export const metadata = new SlashCommandBuilder()
@@ -15,18 +14,7 @@ export const metadata = new SlashCommandBuilder()
 	.setDescription('Get a list of available commands')
 	.setContexts(InteractionContextType.Guild);
 
-const rateLimiter = new RateLimiter(1, 5000);
-
 async function execute(interaction: CommandInteraction): Promise<void> {
-	const limited = rateLimiter.take(interaction.user.id);
-	if (limited) {
-		await interaction.reply({
-			content: 'You are being rate limited!',
-			flags: MessageFlags.Ephemeral,
-		});
-		return;
-	}
-
 	// Ensure the command is used in a guild context to check member permissions
 	if (!interaction.inGuild() || !interaction.member) {
 		await interaction.reply({

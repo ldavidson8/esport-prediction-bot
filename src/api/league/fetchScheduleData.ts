@@ -41,16 +41,53 @@ const leagues: League = {
 
 type LeagueKey = keyof typeof leagues;
 
-export async function getUpcomingMatches(league: LeagueKey, limit: number, endDate?: Date) {
+export async function getMatchesByLeague(league: LeagueKey, limit: number, endDate?: Date) {
 	const series = leagues[league];
+	const startDate = new Date();
+	let dateConditionString = `[[date::>${yearMonthDayHourMinuteSecond(startDate)}]]`;
+
+	if (endDate) {
+		dateConditionString += ` AND [[date::<${yearMonthDayHourMinuteSecond(endDate)}]]`;
+	}
 	const { data, error } = await $fetch('/match', {
 		headers: {
 			Authorization: `Apikey ${env.LIQUIPEDIA_TOKEN}`,
+			'Accept-Encoding': 'gzip',
+		},
+		query: {
+			wiki: 'leagueoflegends',
+			conditions: [`[[series::${series}]] AND ${dateConditionString}`],
+			rawstreams: false,
+			streamurls: false,
+			order: 'date ASC',
+			limit,
+		},
+	});
+
+	if (error) {
+		console.error('Fetch error:', error);
+		throw new Error(`Failed to fetch data: ${error}`);
+	}
+
+	return data;
+}
+
+export async function getUpcomingLeagueMatches(limit: number, endDate?: Date) {
+	const startDate = new Date();
+	let dateConditionString = `[[date::>${yearMonthDayHourMinuteSecond(startDate)}]]`;
+
+	if (endDate) {
+		dateConditionString += ` AND [[date::<${yearMonthDayHourMinuteSecond(endDate)}]]`;
+	}
+	const { data, error } = await $fetch('/match', {
+		headers: {
+			Authorization: `Apikey ${env.LIQUIPEDIA_TOKEN}`,
+			'Accept-Encoding': 'gzip',
 		},
 		query: {
 			wiki: 'leagueoflegends',
 			conditions: [
-				`[[series::${series}]] AND [[date::>${yearMonthDayHourMinuteSecond(endDate || new Date())}]]`,
+				`${dateConditionString} AND [[liquipediatier::1]] AND ([[liquipediatiertype::]] OR [[liquipediatiertype::General]] OR [[liquipediatiertype::Qualifier]])`,
 			],
 			rawstreams: false,
 			streamurls: false,

@@ -26,17 +26,21 @@ const $fetch = createFetch({
 });
 
 export async function getUpcomingVCTMatches(limit: number, endDate?: Date) {
+	const startDate = new Date();
+	let dateConditionString = `[[date::>${yearMonthDayHourMinuteSecond(startDate)}]]`;
+
+	if (endDate) {
+		dateConditionString += ` AND [[date::<${yearMonthDayHourMinuteSecond(endDate)}]]`;
+	}
+
 	const { data, error } = await $fetch('/match', {
 		headers: {
 			Authorization: `Apikey ${env.LIQUIPEDIA_TOKEN}`,
+			'Accept-Encoding': 'gzip',
 		},
 		query: {
 			wiki: 'valorant',
-			conditions: [
-				`[[series::VALORANT Champions Tour]] AND [[date::>${yearMonthDayHourMinuteSecond(
-					endDate || new Date(),
-				)}]]`,
-			],
+			conditions: [`[[series::VALORANT Champions Tour]] AND ${dateConditionString}`],
 			rawstreams: false,
 			streamurls: false,
 			order: 'date ASC',

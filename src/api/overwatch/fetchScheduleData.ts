@@ -26,15 +26,20 @@ const $fetch = createFetch({
 });
 
 export async function getUpcomingOWCSMatches(limit: number, endDate?: Date) {
+	const startDate = new Date();
+	let dateConditionString = `[[date::>${yearMonthDayHourMinuteSecond(startDate)}]]`;
+
+	if (endDate) {
+		dateConditionString += ` AND [[date::<${yearMonthDayHourMinuteSecond(endDate)}]]`;
+	}
 	const { data, error } = await $fetch('/match', {
 		headers: {
 			Authorization: `Apikey ${env.LIQUIPEDIA_TOKEN}`,
+			'Accept-Encoding': 'gzip',
 		},
 		query: {
 			wiki: 'overwatch',
-			conditions: [
-				`[[series::Overwatch Champions Series]] AND [[date::>${yearMonthDayHourMinuteSecond(endDate || new Date())}]]`,
-			],
+			conditions: [`[[series::Overwatch Champions Series]] AND ${dateConditionString}`],
 			rawstreams: false,
 			streamurls: false,
 			order: 'date ASC',

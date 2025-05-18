@@ -14,7 +14,28 @@ const event: Event = {
 				});
 			}
 		}
+		if (interaction.isAutocomplete()) {
+			const command = client.commands.get(interaction.commandName);
 
+			if (!command) {
+				logger.warn(`No command matching ${interaction.commandName} found`);
+				return;
+			}
+
+			if (!command.autocomplete) {
+				logger.warn(`No autocomplete handler for command ${interaction.commandName}`);
+				return;
+			}
+
+			try {
+				await command.autocomplete(interaction);
+			} catch (error) {
+				logger.error(
+					`Error in autocomplete handler for command ${interaction.commandName}:`,
+					error,
+				);
+			}
+		}
 		if (interaction.isChatInputCommand()) {
 			const command = client.commands.get(interaction.commandName);
 			if (!command) {

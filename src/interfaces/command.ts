@@ -3,6 +3,7 @@ import {
 	type PermissionResolvable,
 	type RESTPostAPIApplicationCommandsJSONBody,
 	type RESTPostAPIApplicationGuildCommandsJSONBody,
+	type AutocompleteInteraction,
 } from 'discord.js';
 
 interface CustomOptions {
@@ -16,4 +17,5 @@ export interface Command {
 	data: RESTPostAPIApplicationCommandsJSONBody | RESTPostAPIApplicationGuildCommandsJSONBody;
 	opt?: CustomOptions;
 	execute: (interaction: ChatInputCommandInteraction) => Promise<void>;
+	autocomplete?: (interaction: AutocompleteInteraction) => Promise<void>;
 }

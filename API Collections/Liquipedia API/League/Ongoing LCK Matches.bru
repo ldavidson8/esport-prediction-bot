@@ -1,0 +1,19 @@
+meta {
+  name: Ongoing LCK Matches
+  type: http
+  seq: 5
+}
+
+get {
+  url: https://api.liquipedia.net/api/v3/match?wiki=leagueoflegends&conditions=[[series::LoL Champions Korea]] AND [[date::>2025-05-18]]&rawstreams=false&streamurls=false&order=date ASC
+  body: none
+  auth: inherit
+}
+
+params:query {
+  wiki: leagueoflegends
+  conditions: [[series::LoL Champions Korea]] AND [[date::>2025-05-18]]
+  rawstreams: false
+  streamurls: false
+  order: date ASC
+}

@@ -5,16 +5,16 @@ meta {
 }
 
 get {
-  url: https://api.liquipedia.net/api/v3/match?wiki=valorant&conditions=[[date::>2025-05-16 00:00:00]] AND [[liquipediatier::1]] AND ([[liquipediatiertype::]] OR [[liquipediatiertype::General]] OR [[liquipediatiertype::Qualifier]])&rawstreams=false&streamurls=false&order=date ASC&limit=1000
+  url: https://api.liquipedia.net/api/v3/match?wiki=valorant&conditions=[[date::>2025-05-18 00:00:00]] AND [[liquipediatier::1]] AND ([[liquipediatiertype::]] OR [[liquipediatiertype::General]] OR [[liquipediatiertype::Qualifier]])&rawstreams=false&streamurls=false&order=date ASC
   body: none
   auth: inherit
 }
 
 params:query {
   wiki: valorant
-  conditions: [[date::>2025-05-16 00:00:00]] AND [[liquipediatier::1]] AND ([[liquipediatiertype::]] OR [[liquipediatiertype::General]] OR [[liquipediatiertype::Qualifier]])
+  conditions: [[date::>2025-05-18 00:00:00]] AND [[liquipediatier::1]] AND ([[liquipediatiertype::]] OR [[liquipediatiertype::General]] OR [[liquipediatiertype::Qualifier]])
   rawstreams: false
   streamurls: false
   order: date ASC
-  limit: 1000
+  ~limit: 10
 }

@@ -9,6 +9,14 @@ export type Generated<T> = T extends ColumnType<infer S, infer I, infer U>
   ? ColumnType<S, I | undefined, U>
   : ColumnType<T, T | undefined, T>;
 
+export interface ApiCache {
+  createdAt: Generated<string>;
+  expiresAt: string;
+  id: Generated<number | null>;
+  requestKey: string;
+  responseData: string;
+}
+
 export interface Esports {
   createdAt: Generated<string>;
   id: Generated<number | null>;
@@ -34,6 +42,7 @@ export interface Guilds {
 }
 
 export interface DB {
+  apiCache: ApiCache;
   esports: Esports;
   guildEsportsSettings: GuildEsportsSettings;
   guilds: Guilds;

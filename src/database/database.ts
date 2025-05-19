@@ -30,7 +30,13 @@ async function setupSQliteDialect(): Promise<SqliteDialect> {
 
 		logger.info(`Created directory: ${dataPath}`);
 	}
+	const dbFilePath = path.join(process.cwd(), defaultDbPath);
+	const sqlite = new SQLite(dbFilePath);
+
+	// Enable WAL mode
+	sqlite.pragma('journal_mode = WAL');
+
 	return new SqliteDialect({
-		database: new SQLite(path.join(process.cwd(), defaultDbPath)),
+		database: sqlite,
 	});
 }

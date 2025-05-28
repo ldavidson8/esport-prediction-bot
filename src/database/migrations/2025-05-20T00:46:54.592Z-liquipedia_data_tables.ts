@@ -17,33 +17,19 @@ export async function up(db: Kysely<any>): Promise<void> {
 		.addColumn('updated_at', 'text', (col) => col.defaultTo(sql`CURRENT_TIMESTAMP`).notNull())
 		.execute();
 
-	// Teams table
+	// Teams table - keep this for reference data
 	await db.schema
 		.createTable('teams')
 		.addColumn('id', 'integer', (col) => col.primaryKey().autoIncrement())
-		.addColumn('name', 'text', (col) => col.notNull())
-		.addColumn('template', 'text')
+		.addColumn('name', 'text', (col) => col.notNull().unique())
 		.addColumn('shortname', 'text')
-		.addColumn('bracket_name', 'text')
-		.addColumn('icon', 'text')
+		.addColumn('template', 'text')
 		.addColumn('icon_url', 'text')
-		.addColumn('icon_dark_url', 'text')
 		.addColumn('created_at', 'text', (col) => col.defaultTo(sql`CURRENT_TIMESTAMP`).notNull())
 		.addColumn('updated_at', 'text', (col) => col.defaultTo(sql`CURRENT_TIMESTAMP`).notNull())
 		.execute();
 
-	// Players table
-	await db.schema
-		.createTable('players')
-		.addColumn('id', 'integer', (col) => col.primaryKey().autoIncrement())
-		.addColumn('name', 'text', (col) => col.notNull())
-		.addColumn('display_name', 'text')
-		.addColumn('flag', 'text')
-		.addColumn('created_at', 'text', (col) => col.defaultTo(sql`CURRENT_TIMESTAMP`).notNull())
-		.addColumn('updated_at', 'text', (col) => col.defaultTo(sql`CURRENT_TIMESTAMP`).notNull())
-		.execute();
-
-	// Matches table
+	// Matches table - denormalized for easier querying
 	await db.schema
 		.createTable('matches')
 		.addColumn('id', 'text', (col) => col.primaryKey()) // match2id from API
@@ -64,6 +50,19 @@ export async function up(db: Kysely<any>): Promise<void> {
 		.addColumn('date', 'text', (col) => col.notNull())
 		.addColumn('date_exact', 'integer', (col) => col.notNull().defaultTo(0))
 		.addColumn('best_of', 'integer')
+		// Team 1 data (denormalized for easy access)
+		.addColumn('team1_id', 'integer', (col) => col.references('teams.id'))
+		.addColumn('team1_name', 'text')
+		.addColumn('team1_shortname', 'text')
+		.addColumn('team1_template', 'text')
+		.addColumn('team1_score', 'integer')
+		// Team 2 data (denormalized for easy access)
+		.addColumn('team2_id', 'integer', (col) => col.references('teams.id'))
+		.addColumn('team2_name', 'text')
+		.addColumn('team2_shortname', 'text')
+		.addColumn('team2_template', 'text')
+		.addColumn('team2_score', 'integer')
+		// Additional data
 		.addColumn('vod', 'text')
 		.addColumn('stream_data', 'text') // JSON string
 		.addColumn('links_data', 'text') // JSON string
@@ -74,22 +73,7 @@ export async function up(db: Kysely<any>): Promise<void> {
 		.addColumn('updated_at', 'text', (col) => col.defaultTo(sql`CURRENT_TIMESTAMP`).notNull())
 		.execute();
 
-	// Match opponents table (many-to-many relationship)
-	await db.schema
-		.createTable('match_opponents')
-		.addColumn('id', 'integer', (col) => col.primaryKey().autoIncrement())
-		.addColumn('match_id', 'text', (col) =>
-			col.references('matches.id').onDelete('cascade').notNull(),
-		)
-		.addColumn('team_id', 'integer', (col) => col.references('teams.id').notNull())
-		.addColumn('opponent_index', 'integer', (col) => col.notNull()) // 1 or 2
-		.addColumn('score', 'integer')
-		.addColumn('status', 'text')
-		.addColumn('placement', 'integer')
-		.addColumn('created_at', 'text', (col) => col.defaultTo(sql`CURRENT_TIMESTAMP`).notNull())
-		.execute();
-
-	// Match games table (individual maps/games within a match)
+	// Match games table - for individual maps/games within a match
 	await db.schema
 		.createTable('match_games')
 		.addColumn('id', 'integer', (col) => col.primaryKey().autoIncrement())
@@ -101,7 +85,7 @@ export async function up(db: Kysely<any>): Promise<void> {
 		.addColumn('subgroup', 'text')
 		.addColumn('team1_score', 'integer')
 		.addColumn('team2_score', 'integer')
-		.addColumn('winner', 'text')
+		.addColumn('winner', 'text') // "1", "2", or empty
 		.addColumn('status', 'text')
 		.addColumn('walkover', 'text')
 		.addColumn('result_type', 'text')
@@ -114,19 +98,6 @@ export async function up(db: Kysely<any>): Promise<void> {
 		.addColumn('length', 'text')
 		.addColumn('extra_data', 'text') // JSON string
 		.addColumn('participants_data', 'text') // JSON string
-		.addColumn('created_at', 'text', (col) => col.defaultTo(sql`CURRENT_TIMESTAMP`).notNull())
-		.execute();
-
-	// Match players table (players in specific matches)
-	await db.schema
-		.createTable('match_players')
-		.addColumn('id', 'integer', (col) => col.primaryKey().autoIncrement())
-		.addColumn('match_id', 'text', (col) =>
-			col.references('matches.id').onDelete('cascade').notNull(),
-		)
-		.addColumn('team_id', 'integer', (col) => col.references('teams.id').notNull())
-		.addColumn('player_id', 'integer', (col) => col.references('players.id').notNull())
-		.addColumn('opponent_index', 'integer', (col) => col.notNull()) // 1 or 2
 		.addColumn('created_at', 'text', (col) => col.defaultTo(sql`CURRENT_TIMESTAMP`).notNull())
 		.execute();
 
@@ -145,62 +116,34 @@ export async function up(db: Kysely<any>): Promise<void> {
 		.column('last_fetched_at')
 		.execute();
 	await db.schema
-		.createIndex('idx_match_opponents_match_id')
-		.on('match_opponents')
-		.column('match_id')
+		.createIndex('idx_matches_team1_name')
+		.on('matches')
+		.column('team1_name')
+		.execute();
+	await db.schema
+		.createIndex('idx_matches_team2_name')
+		.on('matches')
+		.column('team2_name')
 		.execute();
 	await db.schema
 		.createIndex('idx_match_games_match_id')
 		.on('match_games')
 		.column('match_id')
 		.execute();
-	await db.schema
-		.createIndex('idx_match_players_match_id')
-		.on('match_players')
-		.column('match_id')
-		.execute();
 	await db.schema.createIndex('idx_teams_name').on('teams').column('name').execute();
-	await db.schema.createIndex('idx_players_name').on('players').column('name').execute();
 
 	// Create unique constraints to prevent duplicates
-	await db.schema
-		.createIndex('idx_match_opponents_unique')
-		.on('match_opponents')
-		.columns(['match_id', 'opponent_index'])
-		.unique()
-		.execute();
 	await db.schema
 		.createIndex('idx_match_games_unique')
 		.on('match_games')
 		.columns(['match_id', 'game_number'])
 		.unique()
 		.execute();
-	await db.schema
-		.createIndex('idx_match_players_unique')
-		.on('match_players')
-		.columns(['match_id', 'team_id', 'player_id'])
-		.unique()
-		.execute();
-	await db.schema
-		.createIndex('idx_teams_name_unique')
-		.on('teams')
-		.column('name')
-		.unique()
-		.execute();
-	await db.schema
-		.createIndex('idx_players_name_unique')
-		.on('players')
-		.column('name')
-		.unique()
-		.execute();
 }
 
 export async function down(db: Kysely<any>): Promise<void> {
-	await db.schema.dropTable('match_players').ifExists().execute();
 	await db.schema.dropTable('match_games').ifExists().execute();
-	await db.schema.dropTable('match_opponents').ifExists().execute();
 	await db.schema.dropTable('matches').ifExists().execute();
-	await db.schema.dropTable('players').ifExists().execute();
 	await db.schema.dropTable('teams').ifExists().execute();
 	await db.schema.dropTable('tournaments').ifExists().execute();
 }

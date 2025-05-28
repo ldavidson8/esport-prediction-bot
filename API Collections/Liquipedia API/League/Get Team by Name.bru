@@ -1,0 +1,16 @@
+meta {
+  name: Get Team by Name
+  type: http
+  seq: 14
+}
+
+get {
+  url: https://api.liquipedia.net/api/v3/team?wiki=leagueoflegends&conditions=[[name::G2 Esports]]
+  body: none
+  auth: inherit
+}
+
+params:query {
+  wiki: leagueoflegends
+  conditions: [[name::G2 Esports]]
+}

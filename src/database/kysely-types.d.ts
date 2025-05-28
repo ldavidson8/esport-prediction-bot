@@ -54,6 +54,16 @@ export interface Matches {
   section: string | null;
   status: string | null;
   streamData: string | null;
+  team1Id: number | null;
+  team1Name: string | null;
+  team1Score: number | null;
+  team1Shortname: string | null;
+  team1Template: string | null;
+  team2Id: number | null;
+  team2Name: string | null;
+  team2Score: number | null;
+  team2Shortname: string | null;
+  team2Template: string | null;
   tournamentId: string;
   type: string;
   updatedAt: Generated<string>;
@@ -86,40 +96,8 @@ export interface MatchGames {
   winner: string | null;
 }
 
-export interface MatchOpponents {
-  createdAt: Generated<string>;
-  id: Generated<number | null>;
-  matchId: string;
-  opponentIndex: number;
-  placement: number | null;
-  score: number | null;
-  status: string | null;
-  teamId: number;
-}
-
-export interface MatchPlayers {
-  createdAt: Generated<string>;
-  id: Generated<number | null>;
-  matchId: string;
-  opponentIndex: number;
-  playerId: number;
-  teamId: number;
-}
-
-export interface Players {
-  createdAt: Generated<string>;
-  displayName: string | null;
-  flag: string | null;
-  id: Generated<number | null>;
-  name: string;
-  updatedAt: Generated<string>;
-}
-
 export interface Teams {
-  bracketName: string | null;
   createdAt: Generated<string>;
-  icon: string | null;
-  iconDarkUrl: string | null;
   iconUrl: string | null;
   id: Generated<number | null>;
   name: string;
@@ -148,9 +126,6 @@ export interface DB {
   guilds: Guilds;
   matches: Matches;
   matchGames: MatchGames;
-  matchOpponents: MatchOpponents;
-  matchPlayers: MatchPlayers;
-  players: Players;
   teams: Teams;
   tournaments: Tournaments;
 }

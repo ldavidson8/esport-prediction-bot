@@ -14,7 +14,8 @@
         "lint": "biome lint --write ./src/**/*",
         "lint:fix": "biome check --fix ./src/**/*",
         "format": "biome format --write ./src/**/*",
-        "commands:deploy": "node dist/src/deploy-command.js"
+        "commands:deploy": "node dist/src/deploy-command.js",
+        "sync:manual": "tsx src/jobs/liquipedia-cron.ts"
     },
     "keywords": [],
     "author": "",

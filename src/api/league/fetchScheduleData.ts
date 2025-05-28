@@ -1,10 +1,8 @@
-import { liquipediaAPIUrl, CACHE_DURATION_MS } from '../../constants.js';
+import { liquipediaAPIUrl } from '../../constants.js';
 import { env } from '../../env.js';
 import { z } from 'zod';
 import { createSchema, createFetch } from '@better-fetch/fetch';
 import { yearMonthDayHourMinuteSecond } from '../../utils/datetime.js';
-import { getDb } from '../../database/database.js';
-import { logger } from '../../utils/logger.js';
 
 const schema = z.object({
 	result: z.array(z.unknown()),
@@ -44,35 +42,6 @@ const leagues: League = {
 type LeagueKey = keyof typeof leagues;
 
 export async function getMatchesByLeague(league: LeagueKey, limit: number, endDate?: Date) {
-	const db = await getDb();
-	const requestKeyParts = ['getMatchesByLeague', league, limit.toString()];
-	if (endDate) {
-		// Normalize endDate for the cache key
-		const keyEndDate = new Date(endDate.getTime()); // Clone to avoid modifying the original endDate object
-		keyEndDate.setMinutes(0, 0, 0); // Round down to the start of the current hour
-		requestKeyParts.push(keyEndDate.toISOString());
-	}
-	const requestKey = requestKeyParts.join(':');
-
-	// 1. Check cache
-	try {
-		const cachedEntry = await db
-			.selectFrom('apiCache')
-			.selectAll()
-			.where('requestKey', '=', requestKey)
-			.where('expiresAt', '>', new Date().toISOString())
-			.executeTakeFirst();
-
-		if (cachedEntry) {
-			logger.info(`Cache hit for key: ${requestKey}`);
-			return JSON.parse(cachedEntry.responseData);
-		}
-		logger.info(`Cache miss for key: ${requestKey}`);
-	} catch (cacheError) {
-		logger.error('Cache read error:', cacheError);
-	}
-
-	// 2. Fetch from API if not in cache or expired
 	const series = leagues[league];
 	const startDate = new Date();
 	let dateConditionString = `[[date::>${yearMonthDayHourMinuteSecond(startDate)}]]`;
@@ -98,31 +67,6 @@ export async function getMatchesByLeague(league: LeagueKey, limit: number, endDa
 	if (error) {
 		console.error('Fetch error:', error);
 		throw new Error(`Failed to fetch data: ${error}`);
-	}
-
-	// 3. Store in cache
-	if (data) {
-		try {
-			const expiresAtDate = new Date(Date.now() + CACHE_DURATION_MS);
-			await db
-				.insertInto('apiCache')
-				.values({
-					requestKey: requestKey,
-					responseData: JSON.stringify(data),
-					expiresAt: expiresAtDate.toISOString(),
-				})
-				.onConflict((oc) =>
-					oc.column('requestKey').doUpdateSet({
-						responseData: JSON.stringify(data),
-						expiresAt: expiresAtDate.toISOString(),
-						createdAt: new Date().toISOString(), // Reset createdAt on update
-					}),
-				)
-				.execute();
-			logger.info(`Cached data for key: ${requestKey}`);
-		} catch (cacheWriteError) {
-			logger.error('Cache write error:', cacheWriteError);
-		}
 	}
 
 	return data;

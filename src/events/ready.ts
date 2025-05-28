@@ -1,4 +1,4 @@
-import { Events } from 'discord.js';
+import { ActivityType, Events, PresenceUpdateStatus } from 'discord.js';
 import type { Event } from '../interfaces/event.js';
 import { logger } from '../utils/logger.js';
 import { checkPredictionConfig } from '../services/checkPredictionConfig.js';
@@ -15,6 +15,15 @@ const event: Event = {
 		for (const guild of client.guilds.cache.values()) {
 			await checkPredictionConfig(guild, client);
 		}
+		client.user.setPresence({
+			activities: [
+				{
+					name: '/schedule',
+					type: ActivityType.Watching
+				},
+			],
+			status: PresenceUpdateStatus.Online,
+		})
 	},
 };
 

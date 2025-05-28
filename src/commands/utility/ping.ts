@@ -1,4 +1,4 @@
-import { CommandInteraction, SlashCommandBuilder } from 'discord.js';
+import { CommandInteraction, MessageFlags, SlashCommandBuilder } from 'discord.js';
 import type { Command } from '../../interfaces/command.js';
 
 export const metadata = new SlashCommandBuilder()
@@ -6,13 +6,14 @@ export const metadata = new SlashCommandBuilder()
 	.setDescription('Replies with Pong!');
 
 async function execute(interaction: CommandInteraction): Promise<void> {
-	await interaction.reply({
+	const sent = await interaction.reply({
 		content: 'Pinging...',
+		flags: MessageFlags.Ephemeral,
 	});
 	await interaction.editReply(
-		`🏓 Pong! Latency is ${
-			Date.now() - interaction.createdTimestamp
-		}ms. API Latency is ${Math.round(interaction.client.ws.ping)}ms`,
+		`Websocket heartbeat: ${interaction.client.ws.ping}ms\nRoundtrip latency: ${
+      sent.createdTimestamp - interaction.createdTimestamp
+    }ms`,
 	);
 }
 

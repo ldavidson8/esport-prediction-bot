@@ -9,14 +9,6 @@ export type Generated<T> = T extends ColumnType<infer S, infer I, infer U>
   ? ColumnType<S, I | undefined, U>
   : ColumnType<T, T | undefined, T>;
 
-export interface ApiCache {
-  createdAt: Generated<string>;
-  expiresAt: string;
-  id: Generated<number | null>;
-  requestKey: string;
-  responseData: string;
-}
-
 export interface Esports {
   createdAt: Generated<string>;
   id: Generated<number | null>;
@@ -41,9 +33,124 @@ export interface Guilds {
   updatedAt: Generated<string>;
 }
 
+export interface Matches {
+  bestOf: number | null;
+  bracketData: string | null;
+  bracketId: string;
+  createdAt: Generated<string>;
+  date: string;
+  dateExact: Generated<number>;
+  extraData: string | null;
+  finished: Generated<number>;
+  game: string;
+  id: string | null;
+  lastFetchedAt: Generated<string>;
+  linksData: string | null;
+  mode: string;
+  pageId: number;
+  pageName: string;
+  patch: string | null;
+  resultType: string | null;
+  section: string | null;
+  status: string | null;
+  streamData: string | null;
+  tournamentId: string;
+  type: string;
+  updatedAt: Generated<string>;
+  vod: string | null;
+  walkover: string | null;
+  winner: string | null;
+}
+
+export interface MatchGames {
+  createdAt: Generated<string>;
+  date: string | null;
+  extraData: string | null;
+  game: string | null;
+  gameNumber: number;
+  id: Generated<number | null>;
+  length: string | null;
+  map: string | null;
+  matchId: string;
+  mode: string | null;
+  participantsData: string | null;
+  patch: string | null;
+  resultType: string | null;
+  status: string | null;
+  subgroup: string | null;
+  team1Score: number | null;
+  team2Score: number | null;
+  type: string | null;
+  vod: string | null;
+  walkover: string | null;
+  winner: string | null;
+}
+
+export interface MatchOpponents {
+  createdAt: Generated<string>;
+  id: Generated<number | null>;
+  matchId: string;
+  opponentIndex: number;
+  placement: number | null;
+  score: number | null;
+  status: string | null;
+  teamId: number;
+}
+
+export interface MatchPlayers {
+  createdAt: Generated<string>;
+  id: Generated<number | null>;
+  matchId: string;
+  opponentIndex: number;
+  playerId: number;
+  teamId: number;
+}
+
+export interface Players {
+  createdAt: Generated<string>;
+  displayName: string | null;
+  flag: string | null;
+  id: Generated<number | null>;
+  name: string;
+  updatedAt: Generated<string>;
+}
+
+export interface Teams {
+  bracketName: string | null;
+  createdAt: Generated<string>;
+  icon: string | null;
+  iconDarkUrl: string | null;
+  iconUrl: string | null;
+  id: Generated<number | null>;
+  name: string;
+  shortname: string | null;
+  template: string | null;
+  updatedAt: Generated<string>;
+}
+
+export interface Tournaments {
+  createdAt: Generated<string>;
+  game: string;
+  iconDarkUrl: string | null;
+  iconUrl: string | null;
+  id: string | null;
+  liquipediaTier: string | null;
+  name: string;
+  publisherTier: string | null;
+  series: string | null;
+  shortname: string | null;
+  updatedAt: Generated<string>;
+}
+
 export interface DB {
-  apiCache: ApiCache;
   esports: Esports;
   guildEsportsSettings: GuildEsportsSettings;
   guilds: Guilds;
+  matches: Matches;
+  matchGames: MatchGames;
+  matchOpponents: MatchOpponents;
+  matchPlayers: MatchPlayers;
+  players: Players;
+  teams: Teams;
+  tournaments: Tournaments;
 }

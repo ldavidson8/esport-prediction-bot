@@ -5,7 +5,7 @@ meta {
 }
 
 get {
-  url: https://api.liquipedia.net/api/v3/match?wiki=leagueoflegends&conditions=[[date::>2025-05-19 00:00:00]] AND [[liquipediatier::1]] AND ([[liquipediatiertype::]] OR [[liquipediatiertype::General]] OR [[liquipediatiertype::Qualifier]])&rawstreams=false&streamurls=false&order=date ASC&limit=100
+  url: https://api.liquipedia.net/api/v3/match?wiki=leagueoflegends&conditions=[[date::>2025-05-19 00:00:00]] AND [[liquipediatier::1]] AND ([[liquipediatiertype::]] OR [[liquipediatiertype::General]] OR [[liquipediatiertype::Qualifier]])&rawstreams=false&streamurls=false&order=date ASC&limit=10
   body: none
   auth: inherit
 }
@@ -16,5 +16,5 @@ params:query {
   rawstreams: false
   streamurls: false
   order: date ASC
-  limit: 100
+  limit: 10
 }

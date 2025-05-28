@@ -1,13 +1,13 @@
 meta {
-  name: Get Upcoming Tier 1 Matches
+  name: test
   type: http
-  seq: 3
+  seq: 1
 }
 
 get {
   url: https://api.liquipedia.net/api/v3/match?wiki=valorant&conditions=[[date::>2025-05-18 00:00:00]] AND [[liquipediatier::1]] AND ([[liquipediatiertype::]] OR [[liquipediatiertype::General]] OR [[liquipediatiertype::Qualifier]])&rawstreams=false&streamurls=false&order=date ASC&limit=1
   body: none
-  auth: inherit
+  auth: none
 }
 
 params:query {

@@ -34,7 +34,7 @@ async function setupSQliteDialect(): Promise<SqliteDialect> {
 	const sqlite = new SQLite(dbFilePath);
 
 	// Enable WAL mode
-	sqlite.pragma('journal_mode = WAL');
+	// sqlite.pragma('journal_mode = WAL');
 
 	return new SqliteDialect({
 		database: sqlite,

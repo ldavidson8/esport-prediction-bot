@@ -20,8 +20,8 @@ function createFile(fileName: string): void {
 
 function writeFileContnt(
 	fileName: string,
-	content: string = `import { Kysely, sql } from 'kysely';
-export async function up(db: Kysely<any>): Promise<void> {}
+	content: string = `import { Kysely, sql } from 'kysely';\n
+export async function up(db: Kysely<any>): Promise<void> {}\n
 export async function down(db: Kysely<any>): Promise<void> {}`,
 ): void {
 	fs.appendFileSync(fileName, content, { encoding: 'utf-8' });

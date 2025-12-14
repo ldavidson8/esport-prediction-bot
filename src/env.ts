@@ -4,9 +4,7 @@ import { z } from "zod";
 const envSchema = z.object({
   CLIENT_ID: z.string().min(1, { message: "CLIENT_ID is required" }),
   GUILD_ID: z.string().optional(),
-  LIQUIPEDIA_TOKEN: z
-    .string()
-    .min(1, { message: "LIQUIPEDIA_TOKEN is required" }),
+  LIQUIPEDIA_TOKEN: z.string().min(1, { message: "LIQUIPEDIA_TOKEN is required" }),
   DISCORD_TOKEN: z.string().min(1, { message: "DISCORD_TOKEN is required" }),
   DATABASE_URL: z.string().min(1, { message: "DATABASE_URL is required" }),
 });

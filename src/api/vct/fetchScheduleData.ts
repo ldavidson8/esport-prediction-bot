@@ -1,57 +1,45 @@
-import { liquipediaAPIUrl } from '../../constants.js';
-import { env } from '../../env.js';
-import { z } from 'zod';
-import { createSchema, createFetch } from '@better-fetch/fetch';
-import { yearMonthDayHourMinuteSecond } from '../../utils/datetime.js';
+import { liquipediaAPIUrl } from "../../constants.js";
+import { env } from "../../env.js";
+import { yearMonthDayHourMinuteSecond } from "../../utils/datetime.js";
 
-const schema = z.object({
-	result: z.array(z.unknown()),
-});
-
-const $fetch = createFetch({
-	baseURL: liquipediaAPIUrl,
-	schema: createSchema({
-		'/match': {
-			query: z.object({
-				wiki: z.string(),
-				conditions: z.array(z.string()),
-				rawstreams: z.boolean(),
-				streamurls: z.boolean(),
-				order: z.string().default('date ASC'),
-				limit: z.number().default(100),
-			}),
-			output: schema,
-		},
-	}),
-});
+interface LiquipediaResponse {
+  result: any[];
+}
 
 export async function getUpcomingVCTMatches(limit: number, endDate?: Date) {
-	const startDate = new Date();
-	let dateConditionString = `[[date::>${yearMonthDayHourMinuteSecond(startDate)}]]`;
+  const startDate = new Date();
+  let dateConditionString = `[[date::>${yearMonthDayHourMinuteSecond(startDate)}]]`;
 
-	if (endDate) {
-		dateConditionString += ` AND [[date::<${yearMonthDayHourMinuteSecond(endDate)}]]`;
-	}
+  if (endDate) {
+    dateConditionString += ` AND [[date::<${yearMonthDayHourMinuteSecond(endDate)}]]`;
+  }
 
-	const { data, error } = await $fetch('/match', {
-		headers: {
-			Authorization: `Apikey ${env.LIQUIPEDIA_TOKEN}`,
-			'Accept-Encoding': 'gzip',
-		},
-		query: {
-			wiki: 'valorant',
-			conditions: [`[[series::VALORANT Champions Tour]] AND ${dateConditionString}`],
-			rawstreams: false,
-			streamurls: false,
-			order: 'date ASC',
-			limit: limit,
-		},
-	});
+  const url = new URL(`${liquipediaAPIUrl}/match`);
+  const params = new URLSearchParams({
+    wiki: "valorant",
+    conditions: `[[series::VALORANT Champions Tour]] AND ${dateConditionString}`,
+    rawstreams: "false",
+    streamurls: "false",
+    order: "date ASC",
+    limit: limit.toString(),
+  });
+  url.search = params.toString();
 
-	if (error) {
-		console.error('Fetch error:', error);
-		throw new Error(`Failed to fetch data: ${error}`);
-	}
+  const response = await fetch(url, {
+    headers: {
+      Authorization: `Apikey ${env.LIQUIPEDIA_TOKEN}`,
+      "Accept-Encoding": "gzip",
+    },
+  });
 
-	return data;
+  if (!response.ok) {
+    const errorText = await response.text();
+    console.error("Fetch error:", errorText);
+    throw new Error(
+      `Failed to fetch data: ${response.status} ${response.statusText} - ${errorText}`,
+    );
+  }
+
+  const data = (await response.json()) as LiquipediaResponse;
+  return data;
 }

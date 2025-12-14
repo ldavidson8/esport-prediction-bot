@@ -1,0 +1,21 @@
+{
+    "plugins": [
+        "typescript",
+        "import",
+        "unicorn",
+        "node"
+    ],
+    "rules": {
+        "no-console": "off",
+        "no-debugger": "warn",
+        
+    },
+    "overrides": [
+        {
+            "files": ["*.test.ts", "*.spec.ts"],
+            "rules": {
+                "no-magic-numbers": "off"
+            }
+        }
+    ]
+}

@@ -1,56 +1,45 @@
-import { liquipediaAPIUrl } from '../../constants.js';
-import { env } from '../../env.js';
-import { z } from 'zod';
-import { createSchema, createFetch } from '@better-fetch/fetch';
-import { yearMonthDayHourMinuteSecond } from '../../utils/datetime.js';
+import { liquipediaAPIUrl } from "../../constants.js";
+import { env } from "../../env.js";
+import { yearMonthDayHourMinuteSecond } from "../../utils/datetime.js";
 
-const schema = z.object({
-	result: z.array(z.unknown()),
-});
-
-const $fetch = createFetch({
-	baseURL: liquipediaAPIUrl,
-	schema: createSchema({
-		'/match': {
-			query: z.object({
-				wiki: z.string(),
-				conditions: z.array(z.string()),
-				rawstreams: z.boolean(),
-				streamurls: z.boolean(),
-				order: z.string().default('date ASC'),
-				limit: z.number().default(100),
-			}),
-			output: schema,
-		},
-	}),
-});
+interface LiquipediaResponse {
+  result: any[];
+}
 
 export async function getUpcomingOWCSMatches(limit: number, endDate?: Date) {
-	const startDate = new Date();
-	let dateConditionString = `[[date::>${yearMonthDayHourMinuteSecond(startDate)}]]`;
+  const startDate = new Date();
+  let dateConditionString = `[[date::>${yearMonthDayHourMinuteSecond(startDate)}]]`;
 
-	if (endDate) {
-		dateConditionString += ` AND [[date::<${yearMonthDayHourMinuteSecond(endDate)}]]`;
-	}
-	const { data, error } = await $fetch('/match', {
-		headers: {
-			Authorization: `Apikey ${env.LIQUIPEDIA_TOKEN}`,
-			'Accept-Encoding': 'gzip',
-		},
-		query: {
-			wiki: 'overwatch',
-			conditions: [`[[series::Overwatch Champions Series]] AND ${dateConditionString}`],
-			rawstreams: false,
-			streamurls: false,
-			order: 'date ASC',
-			limit: limit,
-		},
-	});
+  if (endDate) {
+    dateConditionString += ` AND [[date::<${yearMonthDayHourMinuteSecond(endDate)}]]`;
+  }
 
-	if (error) {
-		console.error('Fetch error:', error);
-		throw new Error(`Failed to fetch data: ${error}`);
-	}
+  const url = new URL(`${liquipediaAPIUrl}/match`);
+  const params = new URLSearchParams({
+    wiki: "overwatch",
+    conditions: `[[series::Overwatch Champions Series]] AND ${dateConditionString}`,
+    rawstreams: "false",
+    streamurls: "false",
+    order: "date ASC",
+    limit: limit.toString(),
+  });
+  url.search = params.toString();
 
-	return data;
+  const response = await fetch(url, {
+    headers: {
+      Authorization: `Apikey ${env.LIQUIPEDIA_TOKEN}`,
+      "Accept-Encoding": "gzip",
+    },
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    console.error("Fetch error:", errorText);
+    throw new Error(
+      `Failed to fetch data: ${response.status} ${response.statusText} - ${errorText}`,
+    );
+  }
+
+  const data = (await response.json()) as LiquipediaResponse;
+  return data;
 }

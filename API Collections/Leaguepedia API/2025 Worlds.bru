@@ -1,0 +1,25 @@
+meta {
+  name: 2025 Worlds
+  type: http
+  seq: 2
+}
+
+get {
+  url: https://lol.fandom.com/api.php?action=cargoquery&format=json&limit=1&tables=PicksAndBansS7&fields=Champion%2C%20SUM(PickCount)%3DTotalPicks&where=OverviewPage%3D%222025%20Season%20World%20Championship%22&join_on=&group_by=Champion&having=&order_by=TotalPicks%20DESC&formatversion=2
+  body: none
+  auth: none
+}
+
+params:query {
+  action: cargoquery
+  format: json
+  limit: 1
+  tables: PicksAndBansS7
+  fields: Champion, SUM(PickCount)=TotalPicks
+  where: OverviewPage="2025 Season World Championship"
+  join_on: 
+  group_by: Champion
+  having: 
+  order_by: TotalPicks DESC
+  formatversion: 2
+}
